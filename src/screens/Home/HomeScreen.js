@@ -9,9 +9,8 @@ import Header from '../../component/Header';
 const HomeScreen = () => {
   return (
     <View style={styles.container}>
-      <Header />
       <View style={styles.feed}>
-      {/* 1 bài đăng */}
+        {/* 1 bài đăng */}
         <View style={styles.post}>
           <View style={styles.header_post}>
             <View style={styles.imgUser_post}></View>

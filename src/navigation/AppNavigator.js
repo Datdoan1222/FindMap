@@ -56,7 +56,6 @@ const BottomTab = () => {
         name={NAVIGATION_NAME.HOME_SCREEN}
         component={HomeScreen}
         options={{
-          headerShown: false,
           gestureEnabled: false,
           tabBarLabel: 'Trang chủ',
         }}
@@ -64,17 +63,17 @@ const BottomTab = () => {
       <Tab.Screen
         name={NAVIGATION_NAME.MESSENGER_SCREEN}
         component={MessengerScreen}
-        options={{headerShown: false, tabBarLabel: 'Tin nhắn', tabBarBadge: 3}}
+        options={{tabBarLabel: 'Tin nhắn', tabBarBadge: 3}}
       />
       <Tab.Screen
         name={NAVIGATION_NAME.MAP_SCREEN}
         component={MapScreen}
-        options={{headerShown: false, tabBarLabel: 'Bản đồ'}}
+        options={{tabBarLabel: 'Bản đồ'}}
       />
       <Tab.Screen
         name={NAVIGATION_NAME.ACCOUNT_SCREEN}
         component={AccountScreen}
-        options={{headerShown: false, tabBarLabel: 'Cá nhân'}}
+        options={{tabBarLabel: 'Cá nhân'}}
       />
     </Tab.Navigator>
   );
