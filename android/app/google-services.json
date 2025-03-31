@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "195040306597",
+    "firebase_url": "https://map-service-1dada-default-rtdb.firebaseio.com",
+    "project_id": "map-service-1dada",
+    "storage_bucket": "map-service-1dada.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:195040306597:android:8b38ded6e0a8026310344c",
+        "android_client_info": {
+          "package_name": "com.findmap"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAvs8qrXwWroK6Shjk7dM1lqUqike1aoH0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:195040306597:android:c22212abe3e78e4710344c",
+        "android_client_info": {
+          "package_name": "com.laptrinhthietbi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAvs8qrXwWroK6Shjk7dM1lqUqike1aoH0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,11 @@
+export const ICON_TYPE = {
+  ICON_HOME: 'home',
+  ICON_HOME_OUTLINE: 'home-outline',
+  ICON_MESSENGER: 'chatbox',
+  ICON_MESSENGER_OUTLINE: 'chatbox-outline',
+  ICON_ACCOUNT: 'person',
+  ICON_ACCOUNT_OUTLINE: 'person-outline',
+  ICON_MAP: 'map',
+  ICON_MAP_OUTLINE: 'map-outline',
+  ICON_SETTING: 'settings',
+};
