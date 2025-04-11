@@ -1,14 +1,30 @@
 import {StyleSheet, Text, View} from 'react-native';
 import React from 'react';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import HeaderComponent from '../../component/molecules/HeaderComponent';
 import {COLOR} from '../../constants/colorConstants';
-import ButtonIcon from '../../component/ButtonIcon';
-import {ICON_TYPE} from '../../constants/iconConstants';
-import Header from '../../component/Header';
+import {useNavigation} from '@react-navigation/native';
+import {NAVIGATION_NAME} from '../../constants/navigtionConstants';
 
 const HomeScreen = () => {
+  const navigation = useNavigation();
+  const onPressRight = () => {
+    navigation.navigate(NAVIGATION_NAME.SEARCH_SCREEN);
+  };
+  const onPressLeft = () => {};
   return (
     <View style={styles.container}>
+      <HeaderComponent
+        title="Trang chủ"
+        onPressRight={() => {
+          onPressRight();
+        }}
+        onPressLeft={() => {
+          onPressLeft();
+        }}
+        iconLeft="heart-outline"
+        iconRight="search"
+        masterScreen={true}
+      />
       <View style={styles.feed}>
         {/* 1 bài đăng */}
         <View style={styles.post}>
@@ -27,6 +43,7 @@ const HomeScreen = () => {
 export default HomeScreen;
 const styles = StyleSheet.create({
   container: {
-    // backgroundColor: 'black',
+    backgroundColor: COLOR.WHITE,
+    flex: 1,
   },
 });

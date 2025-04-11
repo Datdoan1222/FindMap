@@ -8,4 +8,8 @@ export const ICON_TYPE = {
   ICON_MAP: 'map',
   ICON_MAP_OUTLINE: 'map-outline',
   ICON_SETTING: 'settings',
+  DELETE: 'trash',
+  ICON_SEARCH: 'search',
+  MUI_TEN_LEN: 'keyboard-arrow-up',
+  MUI_TEM_XUONG: 'keyboard-arrow-down',
 };

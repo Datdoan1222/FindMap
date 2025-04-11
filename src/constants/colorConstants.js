@@ -15,4 +15,5 @@ export const COLOR = {
   ERROR: '#FF2D2D',
   FAIL: '#FF2D2D',
   SUCCESSFUL: '#00A56F',
+  TEXT: '#000000',
 };

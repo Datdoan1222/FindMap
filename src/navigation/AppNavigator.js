@@ -4,17 +4,18 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {NavigationContainer} from '@react-navigation/native';
 
+//CONSTANTS
 import IconStyles from '../constants/IconStyle';
-
 import {STYLES_TABBAR} from '../constants/tabBarStyle';
 import {COLOR} from '../constants/colorConstants';
 import {NAVIGATION_NAME} from '../constants/navigtionConstants';
 import {ICON_TYPE} from '../constants/iconConstants';
 
-import HomeScreen from '../screens/Home/HomeScreen';
+//SCREEN
 import MessengerScreen from '../screens/Messenger/MessengerScreen';
 import MapScreen from '../screens/Map/MapScreen';
 import AccountScreen from '../screens/Account/AccountScreen';
+import HomeStacks from './HomeStacks';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -23,29 +24,20 @@ const BottomTab = () => {
   return (
     <Tab.Navigator
       screenOptions={({route}) => ({
-        // eslint-disable-next-line react/no-unstable-nested-components
-        tabBarIcon: ({focused, color, size}) => {
+        tabBarIcon: ({focused}) => {
           let iconName;
-
-          if (route.name === NAVIGATION_NAME.HOME_SCREEN) {
-            iconName = focused
-              ? ICON_TYPE.ICON_HOME
-              : ICON_TYPE.ICON_HOME_OUTLINE;
+          let iconColor = focused ? COLOR.PRIMARY : COLOR.GRAY3;
+          if (route.name === NAVIGATION_NAME.MAIN_SCREEN) {
+            iconName = ICON_TYPE.ICON_HOME;
           } else if (route.name === NAVIGATION_NAME.MESSENGER_SCREEN) {
-            iconName = focused
-              ? ICON_TYPE.ICON_MESSENGER
-              : ICON_TYPE.ICON_MESSENGER_OUTLINE;
+            iconName = ICON_TYPE.ICON_MESSENGER;
           } else if (route.name === NAVIGATION_NAME.MAP_SCREEN) {
-            iconName = focused
-              ? ICON_TYPE.ICON_MAP
-              : ICON_TYPE.ICON_MAP_OUTLINE;
+            iconName = ICON_TYPE.ICON_MAP;
           } else if (route.name === NAVIGATION_NAME.ACCOUNT_SCREEN) {
-            iconName = focused
-              ? ICON_TYPE.ICON_ACCOUNT
-              : ICON_TYPE.ICON_ACCOUNT_OUTLINE;
+            iconName = ICON_TYPE.ICON_ACCOUNT;
           }
 
-          return <IconStyles name={iconName} color={COLOR.PRIMARY} size={23} />;
+          return <IconStyles name={iconName} color={iconColor} size={25} />;
         },
         tabBarActiveTintColor: COLOR.PRIMARY,
         tabBarInactiveTintColor: COLOR.GRAY,
@@ -53,9 +45,10 @@ const BottomTab = () => {
         tabBarLabelStyle: STYLES_TABBAR.label,
       })}>
       <Tab.Screen
-        name={NAVIGATION_NAME.HOME_SCREEN}
-        component={HomeScreen}
+        name={NAVIGATION_NAME.MAIN_SCREEN}
+        component={HomeStacks}
         options={{
+          headerShown: false,
           gestureEnabled: false,
           tabBarLabel: 'Trang chủ',
         }}
@@ -63,17 +56,27 @@ const BottomTab = () => {
       <Tab.Screen
         name={NAVIGATION_NAME.MESSENGER_SCREEN}
         component={MessengerScreen}
-        options={{tabBarLabel: 'Tin nhắn', tabBarBadge: 3}}
+        options={{
+          headerShown: false,
+          tabBarLabel: 'Tin nhắn',
+          tabBarBadge: 3,
+        }}
       />
       <Tab.Screen
         name={NAVIGATION_NAME.MAP_SCREEN}
         component={MapScreen}
-        options={{tabBarLabel: 'Bản đồ'}}
+        options={{
+          headerShown: false,
+          tabBarLabel: 'Bản đồ',
+        }}
       />
       <Tab.Screen
         name={NAVIGATION_NAME.ACCOUNT_SCREEN}
         component={AccountScreen}
-        options={{tabBarLabel: 'Cá nhân'}}
+        options={{
+          headerShown: false,
+          tabBarLabel: 'Cá nhân',
+        }}
       />
     </Tab.Navigator>
   );
