@@ -17,8 +17,8 @@ export default ButtonIcon;
 
 const styles = StyleSheet.create({
   btn: {
-    width: 50,
-    height: 50,
+    width: 40,
+    height: 40,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',

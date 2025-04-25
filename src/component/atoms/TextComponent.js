@@ -15,6 +15,7 @@ const TextComponent = ({
   styles,
   onPress,
   required,
+  numberOfLines = 1,
 }) => {
   const fontSizeDefault = Platform.OS === 'ios' ? 14 : 16;
 
@@ -34,7 +35,8 @@ const TextComponent = ({
           },
           styles,
         ]}
-        onPress={onPress}>
+        onPress={onPress}
+        numberOfLines={numberOfLines}>
         {text}
         <Space width={4} />
         {required && <Text style={[styless.requiredText]}>*</Text>}

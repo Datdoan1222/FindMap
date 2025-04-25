@@ -133,6 +133,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR.WHITE,
     paddingTop: 5,
     marginHorizontal: 20,
+    marginVertical: 20,
   },
   widthIcon: {
     width: width * 0.1,
@@ -140,5 +141,11 @@ const styles = StyleSheet.create({
 
   widthTitle: {
     width: width * 0.67,
+  },
+  textTitle: {
+    letterSpacing: 2,
+    fontWeight: 'bold',
+    fontSize: 20,
+    color: COLOR.TEXT,
   },
 });

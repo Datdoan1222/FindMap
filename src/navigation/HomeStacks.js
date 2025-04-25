@@ -10,12 +10,13 @@ import {NAVIGATION_NAME} from '../constants/navigtionConstants';
 import {COLOR} from '../constants/colorConstants';
 import HeaderComponent from '../component/molecules/HeaderComponent';
 import SearchScreen from '../screens/SearchScreen';
+import PostDetailScreen from '../screens/Home/post/PostDetailScreen';
 
 const Stack = createNativeStackNavigator();
 
 const HomeStacks = () => {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator initialRouteName={NAVIGATION_NAME.HOME_SCREEN}>
       <Stack.Screen
         name={NAVIGATION_NAME.HOME_SCREEN}
         component={HomeScreen}
@@ -24,13 +25,13 @@ const HomeStacks = () => {
           title: 'Trang chủ',
         }}
       />
-      {/* <Stack.Screen
-        name={NAVIGATION_NAME.DETAIL_SCREEN}
-        component={DetailScreen}
+      <Stack.Screen
+        name={NAVIGATION_NAME.POST_DETAIL_SCREEN}
+        component={PostDetailScreen}
         options={{
           title: 'Chi tiết',
         }}
-      /> */}
+      />
       <Stack.Screen
         name={NAVIGATION_NAME.SEARCH_SCREEN}
         component={SearchScreen}

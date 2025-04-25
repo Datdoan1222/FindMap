@@ -1,10 +1,16 @@
 import {configureStore} from '@reduxjs/toolkit';
 import ownersReducer from './ownersSlide';
+import postsReducer from './postsSlide';
+import authReducer from './authSlide';
+import usersReducer from './usersSlide'
 
 // Tạo store
 const store = configureStore({
   reducer: {
-    owners: ownersReducer,
+    ownersData: ownersReducer,
+    posts: postsReducer,
+    auth: authReducer,
+    users: usersReducer
   },
 });
 

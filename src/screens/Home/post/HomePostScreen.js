@@ -6,19 +6,18 @@ import {
   Image,
 } from 'react-native';
 import React, {useEffect} from 'react';
-import HeaderComponent from '../../component/molecules/HeaderComponent';
-import {COLOR} from '../../constants/colorConstants';
+import HeaderComponent from '../../../component/molecules/HeaderComponent';
+import {COLOR} from '../../../constants/colorConstants';
 import {useNavigation} from '@react-navigation/native';
-import {NAVIGATION_NAME} from '../../constants/navigtionConstants';
-import RowComponent from '../../component/atoms/RowComponent';
-import TextComponent from '../../component/atoms/TextComponent';
+import {NAVIGATION_NAME} from '../../../constants/navigtionConstants';
+import RowComponent from '../../../component/atoms/RowComponent';
+import TextComponent from '../../../component/atoms/TextComponent';
 import {useSelector, useDispatch} from 'react-redux';
-import {fetchPosts} from '../../redux/postsSlide';
-import ButtonIcon from '../../component/atoms/ButtonIcon';
-import PostComponent from '../../component/molecules/PostComponent';
+import {fetchPosts} from '../../../redux/postsSlide';
+import ButtonIcon from '../../../component/atoms/ButtonIcon';
+import PostComponent from '../../../component/molecules/PostComponent';
 import auth from '@react-native-firebase/auth';
-import Space from '../../component/atoms/Space';
-import ExploreComponent from '../../component/molecules/ExploreComponent';
+import Space from '../../../component/atoms/Space';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
@@ -163,16 +162,6 @@ const HomeScreen = () => {
       </RowComponent>
     );
   };
-  const leftColumn = [];
-  const rightColumn = [];
-
-  posts?.forEach((item, index) => {
-    if (index % 2 === 0) {
-      leftColumn.push(item);
-    } else {
-      rightColumn.push(item);
-    }
-  });
 
   return (
     <View style={styles.container}>
@@ -189,39 +178,17 @@ const HomeScreen = () => {
         masterScreen={true}
       />
       <ScrollView style={styles.feed}>
-        <RowComponent styles={{height: 200}} />
-        <TextComponent text={`Khám phá nhiều nơi hơn tại ...`} />
-        <Space height={10} />
-
-        <View
-          style={{
-            width: '100%',
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-          }}>
-          <View style={{width: '48%'}}>
-            {leftColumn.map(item => (
-              <ExploreComponent
-                key={item.id}
-                id={item.id}
-                item={item}
-                handleSelectImg={handleSelectImg}
-              />
-            ))}
-          </View>
-
-          <View style={{width: '48%'}}>
-            {rightColumn.map(item => (
-              <ExploreComponent
-                key={item.id}
-                id={item.id}
-                item={item}
-                handleSelectImg={handleSelectImg}
-              />
-            ))}
-          </View>
-        </View>
-
+        <RowComponent styles={{height: 200}}></RowComponent>
+        {posts?.map(item => (
+          <>
+            <PostComponent
+              id={item?.id}
+              item={item}
+              handleSelectImg={handleSelectImg}
+            />
+            {/* <ItemPost key={item.id} item={item} /> */}
+          </>
+        ))}
         <Space height={100} />
       </ScrollView>
     </View>
@@ -233,7 +200,6 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: COLOR.WHITE,
     flex: 1,
-    paddingHorizontal: 10,
   },
   feed: {},
 });

@@ -7,6 +7,7 @@ const ownersSlide = createSlice({
     owners: [],
     error: null,
     loading: false,
+    searchKeyword: '',
   },
   reducers: {
     fetchOwnersStart(state) {
@@ -22,11 +23,18 @@ const ownersSlide = createSlice({
       state.loading = false; // Đặt loading thành false khi thất bại
       state.error = action.payload;
     },
+    setSearchKeyword(state, action) {
+      state.searchKeyword = action.payload;
+    },
   },
 });
 
-export const {fetchOwnersStart, fetchOwnersSuccess, fetchOwnersFail} =
-  ownersSlide.actions;
+export const {
+  fetchOwnersStart,
+  fetchOwnersSuccess,
+  fetchOwnersFail,
+  setSearchKeyword,
+} = ownersSlide.actions;
 export default ownersSlide.reducer;
 export const fetchOwners = () => async dispatch => {
   dispatch(fetchOwnersStart());
@@ -52,3 +60,27 @@ export const fetchOwners = () => async dispatch => {
     console.log('Fetch Error:', error.message);
   }
 };
+export const selectFilteredOwners = state => {
+  const keyword = (state.ownersData?.searchKeyword || '').toLowerCase(); // thêm giá trị mặc định ''
+  return state.ownersData.owners.filter(
+    owner =>
+      owner.nameOwner?.toLowerCase().includes(keyword) ||
+      owner.area?.toLowerCase().includes(keyword) ||
+      String(owner.id).includes(keyword),
+  );
+};
+
+export const updateRoomStatus =
+  (ownerId, roomKey, newStatus, idUser) => async dispatch => {
+    try {
+      const updates = {};
+      if (idUser !== undefined) {
+        updates[`/owners/${ownerId}/rooms/${roomKey}/idUser`] = idUser;
+      }
+      updates[`/owners/${ownerId}/rooms/${roomKey}/status`] = newStatus;
+
+      await database().ref().update(updates);
+    } catch (error) {
+      console.error('Update room status failed:', error);
+    }
+  };

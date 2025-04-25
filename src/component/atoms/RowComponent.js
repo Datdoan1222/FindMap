@@ -24,7 +24,7 @@ const RowComponent = ({
     globalStyles.row,
     {
       flexDirection: flexDirection,
-      marginBottom: 5,
+      // marginBottom: 5,
       justifyContent: justify,
       alignItems: alignItems,
     },
