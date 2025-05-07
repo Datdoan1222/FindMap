@@ -1,15 +1,15 @@
 import React from 'react';
 
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {NavigationContainer} from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { NavigationContainer } from '@react-navigation/native';
 
 //CONSTANTS
 import IconStyles from '../constants/IconStyle';
-import {STYLES_TABBAR} from '../constants/tabBarStyle';
-import {COLOR} from '../constants/colorConstants';
-import {NAVIGATION_NAME} from '../constants/navigtionConstants';
-import {ICON_TYPE} from '../constants/iconConstants';
+import { STYLES_TABBAR } from '../constants/tabBarStyle';
+import { COLOR } from '../constants/colorConstants';
+import { NAVIGATION_NAME } from '../constants/navigtionConstants';
+import { ICON_TYPE } from '../constants/iconConstants';
 
 //SCREEN
 import MessengerScreen from '../screens/Messenger/MessengerScreen';
@@ -29,8 +29,8 @@ const Tab = createBottomTabNavigator();
 const BottomTab = () => {
   return (
     <Tab.Navigator
-      screenOptions={({route}) => ({
-        tabBarIcon: ({focused}) => {
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused }) => {
           let iconName;
           let iconColor = focused ? COLOR.PRIMARY : COLOR.GRAY3;
           if (route.name === NAVIGATION_NAME.MAIN_SCREEN) {
@@ -43,7 +43,7 @@ const BottomTab = () => {
             iconName = ICON_TYPE.ICON_ACCOUNT;
           }
 
-          return <IconStyles name={iconName} color={iconColor} size={25} />;
+          return <IconStyles name={iconName} color={iconColor} size={25} iconSet='FontAwesome6' />;
         },
         tabBarActiveTintColor: COLOR.PRIMARY,
         tabBarInactiveTintColor: COLOR.GRAY,
@@ -96,16 +96,16 @@ const AppNavigator = () => {
         <Stack.Screen
           name={NAVIGATION_NAME.SPLASH_SCREEN}
           component={SplashScreen}
-          options={{headerShown: false}}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name={NAVIGATION_NAME.BOTTOM_TAB}
           component={BottomTab}
-          options={{headerShown: false}}
+          options={{ headerShown: false }}
         />
         <Stack.Group
           screenOptions={{
-            headerStyle: {backgroundColor: COLOR.SECONDARY},
+            headerStyle: { backgroundColor: COLOR.SECONDARY },
             headerTintColor: COLOR.GREY_900,
             headerShadowVisible: false,
           }}>

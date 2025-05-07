@@ -1,19 +1,21 @@
-import {Image, ScrollView, StyleSheet, Text, View} from 'react-native';
-import React, {useEffect, useState} from 'react';
+import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
 import RowComponent from '../atoms/RowComponent';
 import TextComponent from '../atoms/TextComponent';
-import {COLOR} from '../../constants/colorConstants';
+import { COLOR } from '../../constants/colorConstants';
 import ButtonIcon from '../atoms/ButtonIcon';
 import IconStyles from '../../constants/IconStyle';
-import {ICON_TYPE} from '../../constants/iconConstants';
-import {getFormattedTime} from '../../utill/time';
-import {updateOwnerLikeStatus} from '../../redux/ownersSlide';
-import {useDispatch, useSelector} from 'react-redux';
-import {toggleLike} from '../../redux/postsSlide';
+import { ICON_TYPE } from '../../constants/iconConstants';
+import { getFormattedTime } from '../../utill/time';
+import { updateOwnerLikeStatus } from '../../redux/ownersSlide';
+import { useDispatch, useSelector } from 'react-redux';
+import { toggleLike } from '../../redux/postsSlide';
 import auth from '@react-native-firebase/auth';
+import Modal from './Modal';
 
-const PostComponent = ({id, item, handleSelectImg, typeImg}) => {
+const PostComponent = ({ id, item, handleSelectImg, typeImg }) => {
   const dispatch = useDispatch();
+  const [isToggleLike, setIsToggleLike] = useState(false);
   const userImage = item?.user?.imageUser; // Example: Safely access nested data
   const userName = item?.user?.nameUser || 'Unknown User'; // Example: Provide fallback
   const postImage = item?.images; // Example: Get post image URI
@@ -22,7 +24,7 @@ const PostComponent = ({id, item, handleSelectImg, typeImg}) => {
   const numberLikes = item?.likes ? Object.keys(item.likes).length : '';
   const [isHeart, setIsHeart] = useState(false);
 
-  const userid = auth().currentUser.uid;
+  const userid = auth().currentUser?.uid;
   const isExistAndTrue = item?.likes[userid] === true;
   useEffect(() => {
     if (isExistAndTrue) {
@@ -34,7 +36,11 @@ const PostComponent = ({id, item, handleSelectImg, typeImg}) => {
   const handleSelectHeart = () => {
     setIsHeart(!isHeart);
     const id = item?.id;
-    dispatch(toggleLike({postId: id, userId: userid}));
+    if (userid) {
+      dispatch(toggleLike({ postId: id, userId: userid }));
+    } else {
+      setIsToggleLike(true);
+    }
   };
   const ImagePost = () => {
     return (
@@ -43,15 +49,15 @@ const PostComponent = ({id, item, handleSelectImg, typeImg}) => {
         onPress={() => handleSelectImg(item)}>
         {postImage?.length === 3 && (
           <>
-            <Image source={{uri: postImage[0]}} style={styles.leftLargeImage} />
+            <Image source={{ uri: postImage[0] }} style={styles.leftLargeImage} />
             <View style={styles.rightSmallImages}>
               <Image
-                source={{uri: postImage[1]}}
-                style={[styles.smallImage, {marginBottom: 2}]}
+                source={{ uri: postImage[1] }}
+                style={[styles.smallImage, { marginBottom: 2 }]}
               />
               <Image
-                source={{uri: postImage[2]}}
-                style={[styles.smallImage, {marginTop: 2}]}
+                source={{ uri: postImage[2] }}
+                style={[styles.smallImage, { marginTop: 2 }]}
               />
             </View>
           </>
@@ -59,15 +65,15 @@ const PostComponent = ({id, item, handleSelectImg, typeImg}) => {
 
         {postImage?.length >= 4 && (
           <>
-            <Image source={{uri: postImage[0]}} style={styles.leftLargeImage} />
+            <Image source={{ uri: postImage[0] }} style={styles.leftLargeImage} />
             <View style={styles.rightSmallImages}>
               <Image
-                source={{uri: postImage[1]}}
-                style={[styles.smallImage, {marginBottom: 2}]}
+                source={{ uri: postImage[1] }}
+                style={[styles.smallImage, { marginBottom: 2 }]}
               />
               <Image
-                source={{uri: postImage[2]}}
-                style={[styles.smallImage, {marginTop: 2}]}>
+                source={{ uri: postImage[2] }}
+                style={[styles.smallImage, { marginTop: 2 }]}>
                 {/* Overlay dấu + */}
                 <View style={styles.overlay}>
                   <Text style={styles.overlayText}>
@@ -81,14 +87,14 @@ const PostComponent = ({id, item, handleSelectImg, typeImg}) => {
 
         {/* Trường hợp 1 ảnh */}
         {postImage?.length === 1 && (
-          <Image source={{uri: postImage[0]}} style={styles.fullImage} />
+          <Image source={{ uri: postImage[0] }} style={styles.fullImage} />
         )}
 
         {/* Trường hợp 2 ảnh */}
         {postImage?.length === 2 && (
           <>
-            <Image source={{uri: postImage[0]}} style={styles.halfImage} />
-            <Image source={{uri: postImage[1]}} style={styles.halfImage} />
+            <Image source={{ uri: postImage[0] }} style={styles.halfImage} />
+            <Image source={{ uri: postImage[1] }} style={styles.halfImage} />
           </>
         )}
       </RowComponent>
@@ -99,11 +105,11 @@ const PostComponent = ({id, item, handleSelectImg, typeImg}) => {
       <ScrollView>
         <RowComponent
           styles={styles.content_post}
-          // onPress={() => handleSelectImg(item)}
+        // onPress={() => handleSelectImg(item)}
         >
           {postImage?.map((item, index) => (
             <Image
-              source={{uri: item}}
+              source={{ uri: item }}
               //   style={styles.fullImage}
               height={400}
               width="100%"
@@ -119,6 +125,15 @@ const PostComponent = ({id, item, handleSelectImg, typeImg}) => {
       flexDirection="column"
       alignItems="flex-start"
       styles={styles.post_container}>
+      <Modal
+        isVisible={isToggleLike}
+        onRequestClose={() => setIsToggleLike(false)}
+        onDismiss={() => setIsToggleLike(false)}
+        title="Thích bài viết"
+        message="Bạn đã thích bài viết này"
+        iconName="heart"
+        iconColor={COLOR.ERROR}
+      />
       <RowComponent
         flexDirection="row"
         alignItems="center"
@@ -188,7 +203,7 @@ const PostComponent = ({id, item, handleSelectImg, typeImg}) => {
             onPress={handleSelectHeart}
           />
           <TextComponent
-            styles={{paddingBottom: 3}}
+            styles={{ paddingBottom: 3 }}
             text={numberLikes}
             color={COLOR.BLACK1}
             size={18}

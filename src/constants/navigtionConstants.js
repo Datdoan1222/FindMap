@@ -1,3 +1,5 @@
+import MyRoomScreen from "../screens/MyRoomScreen";
+
 export const NAVIGATION_NAME = {
   //authentication
   AUTH_STACK: 'AuthStack',
@@ -13,6 +15,12 @@ export const NAVIGATION_NAME = {
   MAP_SCREEN: 'MapScreen',
   POST_DETAIL_SCREEN: 'PostDetailScreen',
   SEARCH_SCREEN: 'SearchScreen',
+
+  MY_ROOM_SCREEN: 'MyRoomScreen',
+  ROOM_MANAGER_SCREEN: 'RoomManagerScreen',
+  SHARE_ROOM_SCREEN: 'ShareRoomScreen',
+  REGISTER_ROOM_SCREEN: 'RegisterRoomScreen',
+  FAVOURITE_SCREEN: 'FavouriteScreen',
 
   //account stack
   ACCOUNT_STACK: 'AccountStack',
