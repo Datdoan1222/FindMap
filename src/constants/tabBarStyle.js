@@ -8,6 +8,8 @@ export const STYLES_TABBAR = StyleSheet.create({
     alignItems: 'center',
   },
   label: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: 'Roboto-Medium',
+    fontWeight: '400',  
   },
 });

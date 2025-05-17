@@ -112,6 +112,8 @@ android {
 
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
+    implementation project(':react-native-reanimated')
+    
     implementation("com.facebook.react:react-android")
     
     implementation 'com.facebook.soloader:soloader:0.10.4+'
