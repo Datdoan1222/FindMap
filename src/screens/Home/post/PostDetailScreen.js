@@ -12,11 +12,7 @@ import IconStyles from '../../../constants/IconStyle';
 import { ICON_TYPE } from '../../../constants/iconConstants';
 import Space from '../../../component/atoms/Space';
 import Button from '../../../component/atoms/Button';
-const amenities = [
-  { id: '1', text: 'Wifi miễn phí tốc độ cao' },
-  { id: '2', text: 'Chỗ để xe an toàn, có mái che' },
-  { id: '3', text: 'Giờ giấc tự do, không chung chủ' },
-]
+
 
 const PostDetailScreen = () => {
   const route = useRoute();
@@ -56,7 +52,12 @@ const PostDetailScreen = () => {
   const postImage = item?.images; // Example: Get post image URI
   const userAddress = item?.user?.addressUser;
   const statusText = item?.statusText;
+  const amenities = item?.amenities;
+  const description = item?.description;
   const numberLikes = item?.likes ? Object.keys(item.likes).length : '';
+  console.log('====================================');
+  console.log(item, "sss");
+  console.log('====================================');
   return (
     <>
 
@@ -158,30 +159,33 @@ const PostDetailScreen = () => {
           </RowComponent>
         </RowComponent>
         <Space height={10} />
-        <RowComponent
-          flexDirection='column'
-          alignItems='flex-start'
-          styles={{ paddingVertical: 10, paddingHorizontal: 15, backgroundColor: COLOR.WHITE }}>
-          <TextComponent size={15} styles={{ fontWeight: 'bold' }} color={COLOR.BLACK1} text={'Các tiện nghi khác'} />
-          <Space height={10} />
-          {amenities.map((amenity) => (
-            <RowComponent key={amenity.id} style={{ marginBottom: 5 }}>
-              <IconStyles name={'check'} iconSet='Entypo' color={COLOR.SUCCESSFUL} size={20} />
-              <TextComponent size={13} styles={{ fontStyle: 'italic', marginLeft: 5 }} color={COLOR.BLACK1} text={amenity.text} />
-            </RowComponent>
-          ))}
-
-        </RowComponent>
+        {amenities && (
+          <RowComponent
+            flexDirection='column'
+            alignItems='flex-start'
+            styles={{ paddingVertical: 10, paddingHorizontal: 15, backgroundColor: COLOR.WHITE }}>
+            <TextComponent size={15} styles={{ fontWeight: 'bold' }} color={COLOR.BLACK1} text={'Các tiện nghi khác'} />
+            <Space height={10} />
+            {Array.isArray(amenities) &&
+              amenities.map((amenity, index) => (
+                <RowComponent key={index} style={{ marginBottom: 5, alignItems: 'flex-start' }}>
+                  <IconStyles name={'check'} iconSet='Entypo' color={COLOR.SUCCESSFUL} size={20} />
+                  <TextComponent size={13} styles={{ fontStyle: 'italic', marginLeft: 5, flexShrink: 1 }} color={COLOR.BLACK1} text={amenity} numberOfLines={0} />
+                </RowComponent>
+              ))}
+          </RowComponent>
+        )}
         <Space height={10} />
-        <RowComponent
-          flexDirection='column'
-          alignItems='flex-start'
-          styles={{ paddingVertical: 10, paddingHorizontal: 15, backgroundColor: COLOR.WHITE }}>
-          <TextComponent size={15} styles={{ fontWeight: 'bold' }} color={COLOR.BLACK1} text={'Mô tả'} />
-          <Space height={10} />
-          <TextComponent size={13} numberOfLines={5} styles={{ fontStyle: 'italic', marginLeft: 5 }} color={COLOR.BLACK1} text={'Phòng trọ giá rẻ thoáng mát phù hợp với các bạn sinh viên nhé'} />
-
-        </RowComponent>
+        {description && (
+          <RowComponent
+            flexDirection='column'
+            alignItems='flex-start'
+            styles={{ paddingVertical: 10, paddingHorizontal: 15, backgroundColor: COLOR.WHITE }}>
+            <TextComponent size={15} styles={{ fontWeight: 'bold' }} color={COLOR.BLACK1} text={'Mô tả'} />
+            <Space height={10} />
+            <TextComponent size={13} numberOfLines={5} styles={{ fontStyle: 'italic', marginLeft: 5 }} color={COLOR.BLACK1} text={description} />
+          </RowComponent>
+        )}
       </ScrollView>
       <RowComponent justify='space-between' styles={{ backgroundColor: COLOR.WHITE, paddingHorizontal: 15, paddingVertical: 20, elevation: 4, borderWidth: 2, borderColor: COLOR.GRAY2, }}>
         <RowComponent>

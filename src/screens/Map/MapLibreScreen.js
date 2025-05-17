@@ -1,28 +1,30 @@
-import React, {useState, useEffect, useRef, useCallback} from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   ActivityIndicator,
   Image,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   useWindowDimensions,
   View,
 } from 'react-native';
 import MapLibreGL from '@maplibre/maplibre-react-native';
-import {useNavigation} from '@react-navigation/native';
-import {useDispatch, useSelector} from 'react-redux';
-import {fetchOwners} from '../../redux/ownersSlide';
+import { useNavigation } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchOwners } from '../../redux/ownersSlide';
 import IconStyles from '../../constants/IconStyle';
-import {COLOR} from '../../constants/colorConstants';
+import { COLOR } from '../../constants/colorConstants';
 import RowComponent from '../../component/atoms/RowComponent';
 import ButtonIcon from '../../component/atoms/ButtonIcon';
-import {ICON_TYPE} from '../../constants/iconConstants';
+import { ICON_TYPE } from '../../constants/iconConstants';
 import Carousel from 'react-native-reanimated-carousel';
 import Modal from '../../component/molecules/Modal';
+import HeaderComponent from '../../component/molecules/HeaderComponent';
 
 MapLibreGL.setAccessToken(null); // Không cần token
-
-const styleURL = 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'; // Đường dẫn đến style JSON của tile server
+const MAP_KEY = "0hyraZS89g2JoCWS27jO4A3oxLxztWJ4ayKnigsv"
+const styleURL = `https://tiles.goong.io/assets/goong_map_web.json?api_key=${MAP_KEY}`;
 
 const DEFAULT_REGION = {
   latitude: 21.0285,
@@ -34,7 +36,8 @@ const DEFAULT_REGION = {
 const MapLibreScreen = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const {width, height} = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
+  const [textSearch, setTextSearch] = useState('');
 
   const [currentLocation, setCurrentLocation] = useState(null); // Hoặc giá trị khởi tạo phù hợp
   const [checkAddress, setCheckAddress] = useState(true); // Hoặc giá trị khởi tạo phù hợp
@@ -45,10 +48,10 @@ const MapLibreScreen = () => {
   const loading = useSelector(state => state.ownersData.loading);
   const error = useSelector(state => state.ownersData.error);
 
+  console.log(ownersData)
   const [isCarouselVisible, setIsCarouselVisible] = useState(false);
   const [currentRegion, setCurrentRegion] = useState({
     ...DEFAULT_REGION,
-    // Adjust delta based on initial screen dimensions
     longitudeDelta: DEFAULT_REGION.longitudeDelta * (width / height),
   });
   const [zoomLevel, setZoomLevel] = useState(12);
@@ -63,7 +66,6 @@ const MapLibreScreen = () => {
       isMounted.current = false; // khi unmount
     };
   }, []);
-  // Update zoom level based on region changes
   const handleRegionChangeComplete = useCallback(
     region => {
       setCurrentRegion(region); // Keep track of the current region
@@ -112,14 +114,24 @@ const MapLibreScreen = () => {
     );
   }
 
-  console.log('✅✅✅✅✅', ownersData[0].locationOwner.latitude);
+  // console.log('✅✅✅✅✅', ownersData[0].locationOwner.latitude);
   return (
     <View style={styles.page}>
+      <View style={styles.containerSreach}>
+        <TextInput
+          style={styles.inputSearch}
+          placeholder="Tìm kiếm phòng trọ nào"
+          value={textSearch}
+          onChangeText={setTextSearch}
+        />
+        <ButtonIcon name={'search'} color={COLOR.WHITE} size={30} />
+      </View>
       <MapLibreGL.MapView
         projection="globe"
         zoomEnabled={true}
         style={styles.map}
-        mapStyle={styleURL}>
+        mapStyle={`https://tiles.goong.io/assets/goong_map_web.json?api_key=${MAP_KEY}`}
+      >
         <MapLibreGL.Camera
           ref={camera}
           zoomLevel={zoomLevel}
@@ -205,7 +217,7 @@ const MapLibreScreen = () => {
             scrollAnimationDuration={800}
             // Use item.id or index as key
             keyExtractor={item => item.id.toString()}
-            renderItem={({item}) => (
+            renderItem={({ item }) => (
               <TouchableOpacity
                 style={styles.carouselItemContainer}
                 onPress={() => navigateToDetail(item)} // Navigate on item press
@@ -215,7 +227,7 @@ const MapLibreScreen = () => {
                   {/* Example Content: Image */}
                   {item.imageOwner ? (
                     <Image
-                      source={{uri: item.imageOwner}}
+                      source={{ uri: item.imageOwner }}
                       style={styles.itemImage}
                       resizeMode="cover"
                     />
@@ -256,8 +268,8 @@ const MapLibreScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  page: {flex: 1},
-  map: {flex: 1},
+  page: { flex: 1 },
+  map: { flex: 1 },
   centered: {
     flex: 1,
     justifyContent: 'center',
@@ -285,7 +297,7 @@ const styles = StyleSheet.create({
     padding: 5,
     elevation: 4, // Add shadow
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
   },
@@ -300,7 +312,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden', // Clip content like image corners
     elevation: 5, // Android shadow
     shadowColor: '#000', // iOS shadow
-    shadowOffset: {width: 0, height: 3},
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     marginBottom: 10, // Space at the bottom
@@ -352,6 +364,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 5,
   },
+  containerSreach: {
+    backgroundColor: COLOR.PRIMARY,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 10,
+    width: "100%"
+  },
+  inputSearch: {
+    borderWidth: 1,
+    borderColor: COLOR.GRAY1,
+    borderRadius: 15,
+    padding: 10,
+    margin: 10,
+    backgroundColor: COLOR.WHITE,
+    width: "85%"
+  }
 });
 
 export default MapLibreScreen;
