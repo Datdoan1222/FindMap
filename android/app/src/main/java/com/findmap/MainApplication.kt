@@ -1,4 +1,4 @@
-package com.findmap
+package com.phongtro
 
 import android.app.Application
 import com.facebook.react.PackageList
