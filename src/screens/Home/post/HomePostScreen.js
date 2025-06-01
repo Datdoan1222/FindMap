@@ -26,7 +26,7 @@ const HomeScreen = () => {
   const userid = auth().currentUser.uid;
 
   useEffect(() => {
-    console.log('post😁😁😁😁😁😁', posts);
+    // console.log('post😁😁😁😁😁😁', posts);
     dispatch(fetchPosts());
   }, []);
 

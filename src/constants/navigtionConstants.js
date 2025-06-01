@@ -1,4 +1,4 @@
-import MyRoomScreen from "../screens/MyRoomScreen";
+import MyRoomScreen from '../screens/MyRoomScreen';
 
 export const NAVIGATION_NAME = {
   //authentication
@@ -10,7 +10,6 @@ export const NAVIGATION_NAME = {
   MAIN_SCREEN: 'MainScreen',
   SPLASH_SCREEN: 'SplashScreen',
   HOME_SCREEN: 'HomeScreen',
-  MESSENGER_SCREEN: 'MessengerScreen',
   ACCOUNT_SCREEN: 'AccountScreen',
   MAP_SCREEN: 'MapScreen',
   POST_DETAIL_SCREEN: 'PostDetailScreen',
@@ -30,4 +29,12 @@ export const NAVIGATION_NAME = {
   INFOR_CAMERA_SCREEN: 'InforCameraScreen',
   INFOR_USER_SCREEN: 'InforUserScreen',
   INFOR_OWNER_SCREEN: 'InforOwnerScreen',
+  //Messenger stack
+  MESSENGER_STACK: 'MessengerStack',
+  MESSENGER_DETAIL_SCREEN: 'MessengerDetail',
+  MESSENGER_SCREEN: 'MessengerScreen',
+  // shareroom
+  ROOM_SHARING_STACK: 'RoomSharingStack',
+  ROOM_SHARING_SCREEN: 'RoomSharingScreen',
+  POST_ROOM_SHARING_FORM: 'PostRoomSharingForm',
 };

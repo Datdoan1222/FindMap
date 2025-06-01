@@ -1,21 +1,22 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import {StyleSheet} from 'react-native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
 // Import your Home-related screens here
 import HomeScreen from '../screens/Home/HomeScreen';
 // import DetailScreen from '../screens/Home/DetailScreen';
 // import SearchScreen from '../screens/Home/SearchScreen';
-import { NAVIGATION_NAME } from '../constants/navigtionConstants';
-import { COLOR } from '../constants/colorConstants';
+import {NAVIGATION_NAME} from '../constants/navigtionConstants';
+import {COLOR} from '../constants/colorConstants';
 import HeaderComponent from '../component/molecules/HeaderComponent';
 import SearchScreen from '../screens/SearchScreen';
 import PostDetailScreen from '../screens/Home/post/PostDetailScreen';
 import MyRoomScreen from '../screens/MyRoomScreen';
-import RoomSharingScreen from '../screens/RoomSharingScreen';
+import RoomSharingScreen from '../screens/ShareRoom/RoomSharingScreen';
 import FavouriteScreen from '../screens/FavouriteScreen';
 import RegisterRoomScreen from '../screens/RegisterRoomScreen';
-import { FONT, FONT_SIZE } from '../constants/fontConstants';
+import {FONT, FONT_SIZE} from '../constants/fontConstants';
+import RoomSharingStack from '../screens/ShareRoom/RoomSharingStack';
 
 const Stack = createNativeStackNavigator();
 
@@ -28,10 +29,10 @@ const HomeStacks = () => {
           backgroundColor: COLOR.PRIMARY,
         },
         headerTitleStyle: {
-          fontSize: FONT_SIZE.H5, 
-          fontFamily: FONT.BOLD, 
+          fontSize: FONT_SIZE.H5,
+          fontFamily: FONT.BOLD,
         },
-        headerTintColor: COLOR.WHITE, 
+        headerTintColor: COLOR.WHITE,
       }}>
       <Stack.Screen
         name={NAVIGATION_NAME.HOME_SCREEN}
@@ -66,8 +67,8 @@ const HomeStacks = () => {
         }}
       />
       <Stack.Screen
-        name={NAVIGATION_NAME.SHARE_ROOM_SCREEN}
-        component={RoomSharingScreen}
+        name={NAVIGATION_NAME.ROOM_SHARING_STACK}
+        component={RoomSharingStack}
         options={{
           // headerShown: false,
           headerTitleAlign: 'center',

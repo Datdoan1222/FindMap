@@ -4,41 +4,36 @@ import {
   ActivityIndicator,
   View,
   Image,
-  Dimensions,
   TouchableOpacity,
 } from 'react-native';
-import React, { useEffect } from 'react';
+import React, {useEffect} from 'react';
 import HeaderComponent from '../../component/molecules/HeaderComponent';
-import { COLOR } from '../../constants/colorConstants';
-import { useNavigation } from '@react-navigation/native';
-import { NAVIGATION_NAME } from '../../constants/navigtionConstants';
+import {COLOR} from '../../constants/colorConstants';
+import {useNavigation} from '@react-navigation/native';
+import {NAVIGATION_NAME} from '../../constants/navigtionConstants';
 import RowComponent from '../../component/atoms/RowComponent';
 import TextComponent from '../../component/atoms/TextComponent';
-import { useSelector, useDispatch } from 'react-redux';
-import { fetchPosts } from '../../redux/postsSlide';
+import {useSelector, useDispatch} from 'react-redux';
+import {fetchPosts} from '../../redux/postsSlide';
 import ButtonIcon from '../../component/atoms/ButtonIcon';
-import PostComponent from '../../component/molecules/PostComponent';
-import auth from '@react-native-firebase/auth';
 import Space from '../../component/atoms/Space';
 import ExploreComponent from '../../component/molecules/ExploreComponent';
-import IconStyles from '../../constants/IconStyle';
-import { ICON_TYPE } from '../../constants/iconConstants';
-const { width, height } = Dimensions.get('window');
+import Banner from '../../component/atoms/Banner';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const { posts, error, loading } = useSelector(state => state.posts);
+  const {posts, error, loading} = useSelector(state => state.posts);
   // const userid = auth().currentUser.uid;
 
   useEffect(() => {
-    console.log('post😁😁😁😁😁😁', posts);
+    // console.log('post😁😁😁😁😁😁', posts);
     dispatch(fetchPosts());
   }, []);
 
   if (loading || error) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
         <ActivityIndicator size="large" color={COLOR.PRIMARY} />
       </View>
     );
@@ -53,14 +48,18 @@ const HomeScreen = () => {
       item,
     });
   };
-  const onPressLeft = () => { };
-  const ItemPost = ({ id, item }) => {
+  const onPressLeft = () => {
+    navigation.navigate(NAVIGATION_NAME.FAVOURITE_SCREEN, {
+      item: posts,
+    });
+  };
+  const ItemPost = ({id, item}) => {
     const userImage = item?.user?.imageUser; // Example: Safely access nested data
     const userName = item?.user?.nameUser || 'Unknown User'; // Example: Provide fallback
     const postImage = item?.images; // Example: Get post image URI
     const userAddress = item?.user?.addressUser;
     const statusText = item?.statusText;
-    console.log('userImage', postImage[0]);
+    // console.log('userImage', postImage[0]);
 
     return (
       <RowComponent
@@ -76,7 +75,7 @@ const HomeScreen = () => {
           <RowComponent styles={styles.imgUser_post}>
             <Image
               // source={require('../../assets/images/logo_phongtro.png')}
-              source={{ uri: userImage }}
+              source={{uri: userImage}}
               style={styles.imgUser_post}
             />
           </RowComponent>
@@ -106,17 +105,17 @@ const HomeScreen = () => {
           {postImage?.length === 3 && (
             <>
               <Image
-                source={{ uri: postImage[0] }}
+                source={{uri: postImage[0]}}
                 style={styles.leftLargeImage}
               />
               <View style={styles.rightSmallImages}>
                 <Image
-                  source={{ uri: postImage[1] }}
-                  style={[styles.smallImage, { marginBottom: 2 }]}
+                  source={{uri: postImage[1]}}
+                  style={[styles.smallImage, {marginBottom: 2}]}
                 />
                 <Image
-                  source={{ uri: postImage[2] }}
-                  style={[styles.smallImage, { marginTop: 2 }]}
+                  source={{uri: postImage[2]}}
+                  style={[styles.smallImage, {marginTop: 2}]}
                 />
               </View>
             </>
@@ -125,17 +124,17 @@ const HomeScreen = () => {
           {postImage?.length >= 4 && (
             <>
               <Image
-                source={{ uri: postImage[0] }}
+                source={{uri: postImage[0]}}
                 style={styles.leftLargeImage}
               />
               <View style={styles.rightSmallImages}>
                 <Image
-                  source={{ uri: postImage[1] }}
-                  style={[styles.smallImage, { marginBottom: 2 }]}
+                  source={{uri: postImage[1]}}
+                  style={[styles.smallImage, {marginBottom: 2}]}
                 />
                 <Image
-                  source={{ uri: postImage[2] }}
-                  style={[styles.smallImage, { marginTop: 2 }]}>
+                  source={{uri: postImage[2]}}
+                  style={[styles.smallImage, {marginTop: 2}]}>
                   {/* Overlay dấu + */}
                   <View style={styles.overlay}>
                     <Text style={styles.overlayText}>
@@ -149,14 +148,14 @@ const HomeScreen = () => {
 
           {/* Trường hợp 1 ảnh */}
           {postImage?.length === 1 && (
-            <Image source={{ uri: postImage[0] }} style={styles.fullImage} />
+            <Image source={{uri: postImage[0]}} style={styles.fullImage} />
           )}
 
           {/* Trường hợp 2 ảnh */}
           {postImage?.length === 2 && (
             <>
-              <Image source={{ uri: postImage[0] }} style={styles.halfImage} />
-              <Image source={{ uri: postImage[1] }} style={styles.halfImage} />
+              <Image source={{uri: postImage[0]}} style={styles.halfImage} />
+              <Image source={{uri: postImage[1]}} style={styles.halfImage} />
             </>
           )}
         </RowComponent>
@@ -178,7 +177,13 @@ const HomeScreen = () => {
       rightColumn.push(item);
     }
   });
-
+  const handleBannerPress = item => {
+    console.log('Bạn vừa nhấn vào banner:', item);
+    // Ví dụ: điều hướng sang màn hình chi tiết
+    navigation.navigate(NAVIGATION_NAME.POST_DETAIL_SCREEN, {
+      item,
+    });
+  };
   return (
     <View style={styles.container}>
       <HeaderComponent
@@ -194,32 +199,63 @@ const HomeScreen = () => {
         masterScreen={true}
       />
       <ScrollView style={styles.feed}>
-        <View style={styles.banner}>
-          <Image
-            style={{ borderRadius: 15 }}
-            width="100%" height="100%"
-            source={{ uri: 'https://firebasestorage.googleapis.com/v0/b/map-service-1dada.appspot.com/o/phongtro%2Fbasauimg3.jpg?alt=media&token=744f6884-674f-47b2-9d1e-6afcf3ece32f' }} />
-        </View>
+        {/* Banner */}
+        <Banner data={posts} onPress={handleBannerPress} />
+        {/* Feed */}
         <Space height={20} />
-        <View style={styles.categories} >
-          <TouchableOpacity onPress={() => navigation.navigate(NAVIGATION_NAME.MY_ROOM_SCREEN)} style={styles.itemCategory}>
+        <View style={styles.categories}>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate(NAVIGATION_NAME.MY_ROOM_SCREEN, {
+                item: posts[0],
+              })
+            }
+            style={styles.itemCategory}>
             {/* <IconStyles iconSet={'FontAwesome6'} name={ICON_TYPE.ICON_MY_ROOM} color={COLOR.PRIMARY} /> */}
-            <Image style={styles.iconImage} source={require('../../assets/images/categories_my_room.png')} />
+            <Image
+              style={styles.iconImage}
+              source={require('../../assets/images/categories_my_room.png')}
+            />
             <TextComponent size={13} text={`Phòng tôi`} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate(NAVIGATION_NAME.SHARE_ROOM_SCREEN)} style={styles.itemCategory}>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate(NAVIGATION_NAME.ROOM_SHARING_STACK, {
+                screen: NAVIGATION_NAME.ROOM_SHARING_SCREEN,
+              })
+            }
+            style={styles.itemCategory}>
             {/* <IconStyles iconSet={'FontAwesome6'} name={ICON_TYPE.ICON_ROOM_MANAGER} color={COLOR.PRIMARY} /> */}
-            <Image style={styles.iconImage} source={require('../../assets/images/categories_add_person.png')} />
+            <Image
+              style={styles.iconImage}
+              source={require('../../assets/images/categories_add_person.png')}
+            />
             <TextComponent size={13} text={`Ghép phòng`} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate(NAVIGATION_NAME.FAVOURITE_SCREEN)} style={styles.itemCategory}>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate(NAVIGATION_NAME.FAVOURITE_SCREEN, {
+                item: posts,
+              })
+            }
+            style={styles.itemCategory}>
             {/* <IconStyles iconSet={'FontAwesome6'} name={ICON_TYPE.ICON_SHARE_ROOM} color={COLOR.PRIMARY} /> */}
-            <Image style={styles.iconImage} source={require('../../assets/images/categories_heart.png')} />
+            <Image
+              style={styles.iconImage}
+              source={require('../../assets/images/categories_heart.png')}
+            />
             <TextComponent size={13} text={`Yêu thích`} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate(NAVIGATION_NAME.REGISTER_ROOM_SCREEN)} style={styles.itemCategory}>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate(NAVIGATION_NAME.REGISTER_ROOM_SCREEN)
+            }
+            style={styles.itemCategory}>
             {/* <IconStyles iconSet={'FontAwesome6'} name={ICON_TYPE.ICON_REGISTER_ROOM} color={COLOR.PRIMARY} /> */}
-            <Image style={styles.iconImage} source={require('../../assets/images/categories_register_room.png')} />
+            <Image
+              style={styles.iconImage}
+              source={require('../../assets/images/categories_register_room.png')}
+            />
             <TextComponent size={13} text={`Đăng kí phòng`} />
           </TouchableOpacity>
         </View>
@@ -233,7 +269,7 @@ const HomeScreen = () => {
             flexDirection: 'row',
             justifyContent: 'space-between',
           }}>
-          <View style={{ width: '48%' }}>
+          <View style={{width: '48%'}}>
             {leftColumn.map(item => (
               <ExploreComponent
                 key={item.id}
@@ -244,7 +280,7 @@ const HomeScreen = () => {
             ))}
           </View>
 
-          <View style={{ width: '48%' }}>
+          <View style={{width: '48%'}}>
             {rightColumn.map(item => (
               <ExploreComponent
                 key={item.id}
@@ -269,8 +305,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 10,
   },
-  feed: {
-  },
+  feed: {},
   banner: {
     height: 140,
     backgroundColor: COLOR.GRAY3,
@@ -286,10 +321,10 @@ const styles = StyleSheet.create({
     height: 70,
     padding: 5,
     justifyContent: 'space-between',
-    alignItems: "center"
+    alignItems: 'center',
   },
   iconImage: {
     width: 50,
-    height: 50
-  }
+    height: 50,
+  },
 });
