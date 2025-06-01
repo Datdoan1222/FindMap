@@ -31,9 +31,6 @@ const AccountScreen = () => {
     }
   }, []);
 
-  console.log('====================================rooms1');
-  console.log(currentUser);
-  console.log('====================================');
 
   return (
     <>
