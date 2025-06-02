@@ -1,5 +1,6 @@
 export const COLOR = {
   PRIMARY: '#1E90FF',
+  PRIMARY1: '#E6F0FE',
   WHITE: '#FFFFFF',
   GRAY: 'gray',
   TEXT: '#0C0950',

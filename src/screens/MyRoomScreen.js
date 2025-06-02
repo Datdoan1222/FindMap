@@ -1,5 +1,5 @@
-import {Image, ScrollView, StyleSheet, Text, View} from 'react-native';
-import React from 'react';
+import {Image, Modal, ScrollView, StyleSheet, Text, View} from 'react-native';
+import React, {useState} from 'react';
 import RowComponent from '../component/atoms/RowComponent';
 import TextComponent from '../component/atoms/TextComponent';
 import Button from '../component/atoms/Button';
@@ -10,10 +10,15 @@ import {useNavigation, useRoute} from '@react-navigation/native';
 import {ICON_TYPE} from '../constants/iconConstants';
 import {getFormattedTime} from '../utill/time';
 import {FONT} from '../constants/fontConstants';
-
+import ButtonIcon from '../component/atoms/ButtonIcon';
+const recipientName = 'Nguyễn Văn Sáu';
+const bankName = 'Vietcombank';
+const accountNumber = '0123456789';
+const amount = 1000000;
 const MyRoomScreen = () => {
   const route = useRoute();
   const {item} = route.params;
+  const [isOpenPayment, setIsOpenPayment] = useState(false);
   const navigation = useNavigation();
   const userImage = item?.user?.imageUser; // Example: Safely access nested data
   const userName = item?.user?.nameUser || 'Unknown User'; // Example: Provide fallback
@@ -242,12 +247,94 @@ const MyRoomScreen = () => {
           <TextComponent color={COLOR.PRIMARY} text={'1.000.000đ'} />
           <TextComponent size={12} color={COLOR.GRAY} text={'Tháng 3/2025'} />
         </RowComponent>
-        <Button title={'Đóng tiền'} />
+        <Button title={'Đóng tiền'} onPress={() => setIsOpenPayment(true)} />
       </RowComponent>
+      <Modal
+        visible={isOpenPayment}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setIsOpenPayment(false)}>
+        <View style={styles.container}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'flex-start',
+              width: '100%',
+              paddingHorizontal: 20,
+            }}>
+            <ButtonIcon
+              name={'arrow-back'}
+              onPress={() => setIsOpenPayment(false)}
+            />
+          </View>
+          <Text style={styles.title}>Mã QR Chuyển Tiền</Text>
+
+          <Image
+            style={styles.qrImage}
+            // source={{
+            //   uri: 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=NguyenVanSau_VCB_0123456789_500000',
+            // }}
+            source={require('../assets/images/QR.jpg')}
+          />
+
+          <View style={styles.infoContainer}>
+            <Text style={styles.infoText}>
+              Chuyển tới: <Text style={styles.bold}>{recipientName}</Text>
+            </Text>
+            <Text style={styles.infoText}>
+              Ngân hàng: <Text style={styles.bold}>{bankName}</Text>
+            </Text>
+            <Text style={styles.infoText}>
+              Số tài khoản: <Text style={styles.bold}>{accountNumber}</Text>
+            </Text>
+            <Text style={styles.infoText}>
+              Số tiền:{' '}
+              <Text style={styles.amount}>{amount.toLocaleString()} VND</Text>
+            </Text>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 };
 
 export default MyRoomScreen;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    paddingTop: 40,
+    backgroundColor: COLOR.PRIMARY1,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: COLOR.PRIMARY,
+  },
+  qrImage: {
+    width: 250,
+    height: 250,
+    marginBottom: 30,
+    backgroundColor: COLOR.WHITE,
+    borderRadius: 15,
+  },
+  infoContainer: {
+    width: '80%',
+    alignItems: 'flex-start',
+  },
+  infoText: {
+    fontSize: 18,
+    marginBottom: 10,
+    color: COLOR.BLACK1,
+  },
+  bold: {
+    fontWeight: '600',
+  },
+  amount: {
+    color: '#d32f2f',
+    fontWeight: 'bold',
+  },
+});

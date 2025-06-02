@@ -7,14 +7,13 @@ import {
   View,
 } from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
-
+const urlimg =
+  'https://firebasestorage.googleapis.com/v0/b/map-service-1dada.appspot.com/o/phongtro%2Fbasauimg3.jpg?alt=media&token=744f6884-674f-47b2-9d1e-6afcf3ece32f';
 const {width: widthScreen} = Dimensions.get('window');
 const bannerWidth = widthScreen * 0.92;
 const bannerHeight = (widthScreen - 68) / 2.34;
 const Banner = ({data, onPress}) => {
-  console.log('====================================');
-  console.log(data);
-  console.log('====================================');
+
   return (
     <View style={styles.banner}>
       {/* <Image
@@ -35,14 +34,14 @@ const Banner = ({data, onPress}) => {
         autoPlayInterval={3000}
         renderItem={({item, index}) => (
           <TouchableOpacity
-            key={item.id || index}
+            key={item?.id || index}
             style={styles.bannerContai}
             onPress={() => onPress(item)}>
             <Image
               style={[styles.bannerItem, {width: bannerWidth}]}
               resizeMode="cover"
               source={{
-                uri: `${item.images[0]}`,
+                uri: item?.images?.[0] || urlimg,
               }}
             />
           </TouchableOpacity>

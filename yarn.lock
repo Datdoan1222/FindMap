@@ -2705,6 +2705,11 @@
   resolved "https://registry.yarnpkg.com/@react-native-firebase/database/-/database-20.5.0.tgz#d4ae944daa54682869495279eb844a77f5b309f8"
   integrity sha512-ZG/LCYmqdmzJsbqk3VndfNrXoqUJBt4AkA5WmxwOSy99rvdyecXqTFXkOko7cPSqVtKdJoHAtO4iIbOCf77yDw==
 
+"@react-native-firebase/storage@^22.2.0":
+  version "22.2.0"
+  resolved "https://registry.yarnpkg.com/@react-native-firebase/storage/-/storage-22.2.0.tgz#2eb631d2c47282d32181d7621985bbcb1405446a"
+  integrity sha512-l+J3UdmXK0Q6iE8Xs+GENCOnhVyc3DTFfE0x7/k2h4+TBDCph2pDBfpdxf7n0NqdAV1C/5wxCzeMEzgMngMSkQ==
+
 "@react-native/assets-registry@0.75.4":
   version "0.75.4"
   resolved "https://registry.yarnpkg.com/@react-native/assets-registry/-/assets-registry-0.75.4.tgz#d48b8765e030f8d305f34659d4ce50ebb82ccb34"
@@ -7484,6 +7489,11 @@ react-native-gesture-handler@^2.25.0:
     hoist-non-react-statics "^3.3.0"
     invariant "^2.2.4"
 
+react-native-image-picker@^8.2.1:
+  version "8.2.1"
+  resolved "https://registry.yarnpkg.com/react-native-image-picker/-/react-native-image-picker-8.2.1.tgz#1ac7826563cbaa5d5298d9f2acc53c69805e5393"
+  integrity sha512-FBeGYJGFDjMdGCcyubDJgBAPCQ4L1D3hwLXyUU91jY9ahOZMTbluceVvRmrEKqnDPFJ0gF1NVhJ0nr1nROFLdg==
+
 react-native-is-edge-to-edge@1.1.7, react-native-is-edge-to-edge@^1.1.7:
   version "1.1.7"
   resolved "https://registry.yarnpkg.com/react-native-is-edge-to-edge/-/react-native-is-edge-to-edge-1.1.7.tgz#28947688f9fafd584e73a4f935ea9603bd9b1939"
@@ -7494,7 +7504,7 @@ react-native-reanimated-carousel@^3.5.1:
   resolved "https://registry.yarnpkg.com/react-native-reanimated-carousel/-/react-native-reanimated-carousel-3.5.1.tgz#3605b9959ffc0aa1c6b8b8736d98f91f46e36b17"
   integrity sha512-9BBQV6JAYSQm2lV7MFtT4mzapXmW4IZO6s38gfiJL84Jg23ivGB1UykcNQauKgtHyhtW2NuZJzItb1s42lM+hA==
 
-react-native-reanimated@^3.15.5:
+react-native-reanimated@3.18.0:
   version "3.18.0"
   resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-3.18.0.tgz#0a246eab38a9e807887fe561a2868cfe85351f3c"
   integrity sha512-eVcNcqeOkMW+BUWAHdtvN3FKgC8J8wiEJkX6bNGGQaLS7m7e4amTfjIcqf/Ta+lerZLurmDaQ0lICI1CKPrb1Q==

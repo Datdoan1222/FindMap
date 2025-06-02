@@ -83,9 +83,9 @@ const SearchScreen = () => {
 
   const renderRightActions = (progress, dragX, item) => {
     const maxSwipe = itemWidth * 0.3;
-    console.log('====================================');
-    console.log('dragX', dragX);
-    console.log('====================================');
+    // console.log('====================================');
+    // console.log('dragX', dragX);
+    // console.log('====================================');
     return (
       <View style={{width: maxSwipe, justifyContent: 'center'}}>
         <TouchableOpacity

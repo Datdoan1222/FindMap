@@ -6,10 +6,10 @@ import {
   Image,
   TouchableOpacity,
 } from 'react-native';
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import HeaderComponent from '../../component/molecules/HeaderComponent';
 import {COLOR} from '../../constants/colorConstants';
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {NAVIGATION_NAME} from '../../constants/navigtionConstants';
 import RowComponent from '../../component/atoms/RowComponent';
 import TextComponent from '../../component/atoms/TextComponent';
@@ -26,11 +26,11 @@ const HomeScreen = () => {
   const {posts, error, loading} = useSelector(state => state.posts);
   // const userid = auth().currentUser.uid;
 
-  useEffect(() => {
-    // console.log('post😁😁😁😁😁😁', posts);
-    dispatch(fetchPosts());
-  }, []);
-
+  useFocusEffect(
+    useCallback(() => {
+      dispatch(fetchPosts());
+    }, [dispatch]),
+  );
   if (loading || error) {
     return (
       <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
@@ -200,7 +200,7 @@ const HomeScreen = () => {
       />
       <ScrollView style={styles.feed}>
         {/* Banner */}
-        <Banner data={posts} onPress={handleBannerPress} />
+        {posts && <Banner data={posts} onPress={handleBannerPress} />}
         {/* Feed */}
         <Space height={20} />
         <View style={styles.categories}>

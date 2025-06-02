@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, {useState, useEffect, useRef, useCallback} from 'react';
 import {
   ActivityIndicator,
+  Dimensions,
+  FlatList,
   Image,
   StyleSheet,
   Text,
@@ -10,20 +12,21 @@ import {
   View,
 } from 'react-native';
 import MapLibreGL from '@maplibre/maplibre-react-native';
-import { useNavigation } from '@react-navigation/native';
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchOwners } from '../../redux/ownersSlide';
+import {useNavigation} from '@react-navigation/native';
+import {useDispatch, useSelector} from 'react-redux';
+import {fetchOwners} from '../../redux/ownersSlide';
 import IconStyles from '../../constants/IconStyle';
-import { COLOR } from '../../constants/colorConstants';
+import {COLOR} from '../../constants/colorConstants';
 import RowComponent from '../../component/atoms/RowComponent';
 import ButtonIcon from '../../component/atoms/ButtonIcon';
-import { ICON_TYPE } from '../../constants/iconConstants';
+import {ICON_TYPE} from '../../constants/iconConstants';
 import Carousel from 'react-native-reanimated-carousel';
 import Modal from '../../component/molecules/Modal';
 import HeaderComponent from '../../component/molecules/HeaderComponent';
+import {NAVIGATION_NAME} from '../../constants/navigtionConstants';
 
 MapLibreGL.setAccessToken(null); // Không cần token
-const MAP_KEY = "0hyraZS89g2JoCWS27jO4A3oxLxztWJ4ayKnigsv"
+const MAP_KEY = '0hyraZS89g2JoCWS27jO4A3oxLxztWJ4ayKnigsv';
 const styleURL = `https://tiles.goong.io/assets/goong_map_web.json?api_key=${MAP_KEY}`;
 
 const DEFAULT_REGION = {
@@ -32,30 +35,34 @@ const DEFAULT_REGION = {
   latitudeDelta: 0.05,
   longitudeDelta: 0.05,
 };
-
+const {width, height} = Dimensions.get('window');
 const MapLibreScreen = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const { width, height } = useWindowDimensions();
+  const {width, height} = useWindowDimensions();
   const [textSearch, setTextSearch] = useState('');
-
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [currentLocation, setCurrentLocation] = useState(null); // Hoặc giá trị khởi tạo phù hợp
   const [checkAddress, setCheckAddress] = useState(true); // Hoặc giá trị khởi tạo phù hợp
-  const [openModalMarker, setOpenModalMarker] = useState(false); // Hoặc giá trị khởi tạo phù hợp
-
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [latCamera, setLatCamera] = useState(10.9530222);
+  const [lngCamera, setLngCamera] = useState(106.8022549);
+  const [openModalMarker, setOpenModalMarker] = useState(false);
   // Redux state
-  const ownersData = useSelector(state => state.ownersData.owners);
-  const loading = useSelector(state => state.ownersData.loading);
-  const error = useSelector(state => state.ownersData.error);
-
-  console.log(ownersData)
+  const {posts, error, loading} = useSelector(state => state.posts);
+  const [filteredPosts, setFilteredPosts] = useState(posts);
+  console.log(posts);
   const [isCarouselVisible, setIsCarouselVisible] = useState(false);
   const [currentRegion, setCurrentRegion] = useState({
     ...DEFAULT_REGION,
     longitudeDelta: DEFAULT_REGION.longitudeDelta * (width / height),
   });
   const [zoomLevel, setZoomLevel] = useState(12);
-
+  const [initialCoordinate, setInitialCoordinate] = useState(
+    posts[0]?.location
+      ? [posts[0].location.lng, posts[0].location.lat]
+      : [106.8022549, 10.9530222],
+  );
   // Refs
   const mapRef = useRef(null);
   const camera = useRef(null);
@@ -84,10 +91,13 @@ const MapLibreScreen = () => {
 
   // Navigate to detail screen
   const navigateToDetail = item => {
-    // navigation.navigate(NAVIGATION_NAME.DETAIL_SCREEN, {ownerId: item.id});
-    {
-      /* Conditionally render markers based on zoom level */
-    }
+    navigation.navigate(NAVIGATION_NAME.MAIN_SCREEN, {
+      screen: NAVIGATION_NAME.POST_DETAIL_SCREEN,
+      params: {item: item},
+    });
+    // {
+    //   /* Conditionally render markers based on zoom level */
+    // }
     console.log('item', item);
   };
   // Fetch data on mount
@@ -95,6 +105,23 @@ const MapLibreScreen = () => {
     dispatch(fetchOwners());
   }, [dispatch]);
 
+  useEffect(() => {
+    if (textSearch.trim() === '') {
+      setFilteredPosts([]);
+    } else {
+      const lowerText = textSearch.toLowerCase();
+      const filtered = posts.filter(item =>
+        item.name?.toLowerCase().includes(lowerText),
+      );
+      setFilteredPosts(filtered);
+    }
+  }, [textSearch]);
+
+  const onSelectSuggestion = item => {
+    setFilteredPosts([]);
+    setIsCarouselVisible(prev => !prev);
+    setTextSearch(item.name);
+  };
   // Render Loading Indicator
   if (loading) {
     return (
@@ -117,6 +144,45 @@ const MapLibreScreen = () => {
   // console.log('✅✅✅✅✅', ownersData[0].locationOwner.latitude);
   return (
     <View style={styles.page}>
+      {/* modal */}
+      <Modal visible={openModalMarker} transparent animationType="slide">
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}>
+          <View
+            style={{
+              width: '85%',
+              padding: 20,
+              backgroundColor: 'white',
+              borderRadius: 10,
+            }}>
+            <Text style={{fontSize: 18, fontWeight: 'bold', marginBottom: 10}}>
+              {selectedPost?.title}
+            </Text>
+            <Text>Mô tả: {selectedPost?.description ?? 'Không có mô tả'}</Text>
+            <Text>
+              Vị trí: {selectedPost?.location?.lat},{' '}
+              {selectedPost?.location?.lng}
+            </Text>
+
+            <TouchableOpacity
+              onPress={() => setOpenModalMarker(false)}
+              style={{
+                marginTop: 20,
+                alignSelf: 'flex-end',
+                padding: 10,
+                backgroundColor: COLOR.PRIMARY,
+                borderRadius: 5,
+              }}>
+              <Text style={{color: 'white'}}>Đóng</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
       <View style={styles.containerSreach}>
         <TextInput
           style={styles.inputSearch}
@@ -126,16 +192,47 @@ const MapLibreScreen = () => {
         />
         <ButtonIcon name={'search'} color={COLOR.WHITE} size={30} />
       </View>
+      {filteredPosts.length > 0 && (
+        <View style={styles.suggestionList}>
+          <FlatList
+            data={filteredPosts}
+            keyExtractor={item => item.id.toString()}
+            renderItem={({item}) => (
+              <TouchableOpacity
+                style={styles.suggestionItem}
+                onPress={() => onSelectSuggestion(item)}>
+                <Text style={{color: COLOR.BLACK1, fontWeight: 'bold'}}>
+                  <IconStyles
+                    iconSet="MaterialIcons"
+                    name="location-on"
+                    color={COLOR.ERROR}
+                    size={15}
+                  />
+                  {item.name}
+                </Text>
+                <Text style={{color: COLOR.GRAY, fontStyle: 'italic'}}>
+                  {item.nameLocation}
+                </Text>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      )}
       <MapLibreGL.MapView
         projection="globe"
         zoomEnabled={true}
         style={styles.map}
-        mapStyle={`https://tiles.goong.io/assets/goong_map_web.json?api_key=${MAP_KEY}`}
-      >
+        onRegionDidChange={event => {
+          const {zoomLevel, center} = event.properties;
+          setZoomLevel(zoomLevel);
+          console.log('Zoom hiện tại:', zoomLevel);
+          console.log('Tọa độ center:', center);
+        }}
+        mapStyle={`https://tiles.goong.io/assets/goong_map_web.json?api_key=${MAP_KEY}`}>
         <MapLibreGL.Camera
           ref={camera}
-          zoomLevel={zoomLevel}
-          centerCoordinate={[106.842786, 10.956216]}
+          zoomLevel={17}
+          centerCoordinate={initialCoordinate}
         />
         <MapLibreGL.PointAnnotation
           id="marker1"
@@ -147,42 +244,46 @@ const MapLibreScreen = () => {
             size={25}
           />
         </MapLibreGL.PointAnnotation>
-        {ownersData?.map(owner => (
-          <MapLibreGL.PointAnnotation
-            key={owner.id.toString()}
-            id={owner.id.toString()}
-            coordinate={[
-              owner?.locationOwner?.longitude
-                ? owner?.locationOwner?.longitude
-                : 0,
-              owner?.locationOwner?.latitude
-                ? owner?.locationOwner?.latitude
-                : 0,
-            ]}
-            onSelected={() => {
-              console.log('Marker được click:', owner.id);
-              // Bạn có thể mở modal, callout, hoặc điều hướng sang màn hình chi tiết...
+        {posts?.map(owner => {
+          const lat = owner?.location?.lat ?? 0;
+          const lng = owner?.location?.lng ?? 0;
+          return (
+            <MapLibreGL.PointAnnotation
+              key={owner.id.toString()}
+              id={owner.id.toString()}
+              coordinate={[lng, lat]}
+              onSelected={() => {
+                console.log('Marker được click:', owner.id);
+                if (isMounted.current && camera.current) {
+                  camera.current?.setCamera({
+                    centerCoordinate: [lng, lat + 0.004],
+                    zoomLevel: 15,
+                    animationDuration: 1000,
+                  });
+                }
+                setIsCarouselVisible(prev => !prev);
+              }}>
+              <View
+                style={{
+                  alignItems: 'center',
+                  // backgroundColor: 'red',
+                }}>
+                <Text
+                  style={{fontSize: 12, fontWeight: 'bold', color: 'black'}}>
+                  {owner.name && zoomLevel > 13 ? owner.name : ''}
+                </Text>
+                <IconStyles
+                  iconSet="MaterialIcons"
+                  name="location-on"
+                  color={COLOR.ERROR}
+                  size={30}
+                />
+              </View>
 
-              if (isMounted.current && camera.current) {
-                camera.current?.setCamera({
-                  centerCoordinate: [
-                    owner.locationOwner.longitude,
-                    owner.locationOwner.latitude + 0.004,
-                  ],
-                  zoomLevel: 15, // zoom gần hơn
-                  animationDuration: 1000, // thời gian di chuyển
-                });
-              }
-              setOpenModalMarker(true);
-            }}>
-            <IconStyles
-              iconSet="MaterialIcons"
-              name="location-on"
-              color={COLOR.PRIMARY}
-              size={25}
-            />
-          </MapLibreGL.PointAnnotation>
-        ))}
+              {/* Icon marker */}
+            </MapLibreGL.PointAnnotation>
+          );
+        })}
       </MapLibreGL.MapView>
       <View style={styles.bottomContainer}>
         {/* Toggle Button */}
@@ -201,10 +302,10 @@ const MapLibreScreen = () => {
         </RowComponent>
 
         {/* Carousel */}
-        {isCarouselVisible && ownersData && ownersData.length > 0 && (
+        {isCarouselVisible && posts && posts.length > 0 && (
           <Carousel
             // Use ownersData instead of static DATA
-            data={ownersData}
+            data={posts}
             loop={false}
             width={width}
             height={width / 2.5}
@@ -215,9 +316,8 @@ const MapLibreScreen = () => {
               parallaxScrollingOffset: 50,
             }}
             scrollAnimationDuration={800}
-            // Use item.id or index as key
             keyExtractor={item => item.id.toString()}
-            renderItem={({ item }) => (
+            renderItem={({item}) => (
               <TouchableOpacity
                 style={styles.carouselItemContainer}
                 onPress={() => navigateToDetail(item)} // Navigate on item press
@@ -225,9 +325,9 @@ const MapLibreScreen = () => {
               >
                 <View style={styles.carouselItemContent}>
                   {/* Example Content: Image */}
-                  {item.imageOwner ? (
+                  {item.images[0] ? (
                     <Image
-                      source={{ uri: item.imageOwner }}
+                      source={{uri: item.images[0]}}
                       style={styles.itemImage}
                       resizeMode="cover"
                     />
@@ -243,21 +343,45 @@ const MapLibreScreen = () => {
                   )}
                   {/* Example Content: Text */}
                   <View style={styles.itemTextContainer}>
-                    <Text style={styles.itemTitle} numberOfLines={1}>
-                      {item.nameOwner || 'Unnamed Location'}
-                    </Text>
+                    <RowComponent
+                      flexDirection="row"
+                      alignItems="center"
+                      justify="space-between">
+                      <Text style={styles.itemTitle} numberOfLines={1}>
+                        {item.name || 'Unnamed Location'}
+                      </Text>
+                      <Text
+                        style={[styles.itemSubtitle, {color: COLOR.SUCCESSFUL}]}
+                        numberOfLines={1}>
+                        {`${item.price}.000 VND` || 'Unnamed Location'}
+                      </Text>
+                    </RowComponent>
                     <Text style={styles.itemSubtitle} numberOfLines={1}>
-                      {item.address || 'No address'}
+                      {item.nameLocation || 'No address'}
                     </Text>
                     {/* Add more details like distance, rating, etc. */}
                   </View>
                 </View>
               </TouchableOpacity>
             )}
+            onSnapToItem={index => {
+              setCurrentIndex(index); // Cập nhật index đang hiển thị
+              console.log('Đang hiển thị item:', posts[index]);
+              const lat = posts[index]?.location?.lat ?? 0;
+              const lng = posts[index]?.location?.lng ?? 0;
+
+              if (lat && lng && camera.current) {
+                camera.current.setCamera({
+                  centerCoordinate: [lng, lat],
+                  zoomLevel: 17,
+                  animationDuration: 1000,
+                });
+              }
+            }}
           />
         )}
         {/* Show message if carousel is visible but no data */}
-        {isCarouselVisible && (!ownersData || ownersData.length === 0) && (
+        {isCarouselVisible && (!posts || posts.length === 0) && (
           <View style={styles.noDataContainer}>
             <Text style={styles.noDataText}>No locations found.</Text>
           </View>
@@ -268,8 +392,8 @@ const MapLibreScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  page: { flex: 1 },
-  map: { flex: 1 },
+  page: {flex: 1},
+  map: {flex: 1},
   centered: {
     flex: 1,
     justifyContent: 'center',
@@ -297,7 +421,7 @@ const styles = StyleSheet.create({
     padding: 5,
     elevation: 4, // Add shadow
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.2,
     shadowRadius: 2,
   },
@@ -312,7 +436,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden', // Clip content like image corners
     elevation: 5, // Android shadow
     shadowColor: '#000', // iOS shadow
-    shadowOffset: { width: 0, height: 3 },
+    shadowOffset: {width: 0, height: 3},
     shadowOpacity: 0.3,
     shadowRadius: 4,
     marginBottom: 10, // Space at the bottom
@@ -366,11 +490,11 @@ const styles = StyleSheet.create({
   },
   containerSreach: {
     backgroundColor: COLOR.PRIMARY,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     padding: 10,
-    width: "100%"
+    width: '100%',
   },
   inputSearch: {
     borderWidth: 1,
@@ -379,8 +503,22 @@ const styles = StyleSheet.create({
     padding: 10,
     margin: 10,
     backgroundColor: COLOR.WHITE,
-    width: "85%"
-  }
+    width: '85%',
+  },
+  suggestionList: {
+    padding: 10,
+    backgroundColor: COLOR.WHITE,
+    height: height * 0.3,
+  },
+  suggestionItem: {
+    padding: 10,
+    marginVertical: 5,
+    borderRadius: 5,
+    width: '100%',
+    color: COLOR.BLACK1,
+    borderBottomWidth: 1,
+    borderBottomColor: COLOR.GRAY1,
+  },
 });
 
 export default MapLibreScreen;

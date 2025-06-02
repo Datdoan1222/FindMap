@@ -1,4 +1,3 @@
-// c:\FindMap\src\screens\Account\InforRoomDetailScreen.js
 import {
   StyleSheet,
   Text,
@@ -87,9 +86,9 @@ const InforRoomDetailScreen = () => {
     if (foundRoomEntry) {
       const [roomKey, roomData] = foundRoomEntry;
 
-      console.log('====================================');
-      console.log(roomData.status, selectedOwner, roomKey);
-      console.log('====================================');
+      // console.log('====================================');
+      // console.log(roomData.status, selectedOwner, roomKey);
+      // console.log('====================================');
 
       if (!roomData.status) {
         console.log('Đăng ký thành công:');

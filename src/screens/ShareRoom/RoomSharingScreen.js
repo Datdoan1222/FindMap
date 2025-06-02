@@ -8,14 +8,19 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React from 'react';
+import React, {useCallback, useState} from 'react';
 import Modal from '../../component/molecules/Modal';
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import HeaderComponent from '../../component/molecules/HeaderComponent';
 import {COLOR} from '../../constants/colorConstants';
 import IconStyles from '../../constants/IconStyle';
 import Space from '../../component/atoms/Space';
 import {NAVIGATION_NAME} from '../../constants/navigtionConstants';
+import {useDispatch, useSelector} from 'react-redux';
+import {
+  deletePostShareRoom,
+  fetchPostsShareRoom,
+} from '../../redux/postShareRoomSlide';
 const posts = [
   {
     id: '1',
@@ -38,6 +43,25 @@ const posts = [
 ];
 const RoomSharingScreen = () => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
+  const [isOpenModal, setIsOpenModal] = useState(false);
+  const postsShareRoomData = useSelector(
+    state => state.postsShareRoomData.postsShareRoomData,
+  );
+  // const userid = auth().currentUser.uid;
+  console.log('=============ss=======================');
+  console.log(postsShareRoomData);
+  console.log('====================================');
+
+  useFocusEffect(
+    useCallback(() => {
+      dispatch(fetchPostsShareRoom());
+    }, [dispatch]),
+  );
+  const handleDeletePost = postId => {
+    dispatch(deletePostShareRoom(postId));
+    setIsOpenModal(true);
+  };
   const renderPost = ({item}) => (
     <View style={styles.postContainer}>
       {/* Header */}
@@ -97,8 +121,10 @@ const RoomSharingScreen = () => {
       </View>
 
       {/* Nút xem chi tiết */}
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>Xem chi tiết</Text>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => handleDeletePost(item.id)}>
+        <Text style={styles.buttonText}>Xác nhận</Text>
       </TouchableOpacity>
     </View>
   );
@@ -115,10 +141,19 @@ const RoomSharingScreen = () => {
 
       {/* Danh sách bài viết */}
       <FlatList
-        data={posts}
+        data={postsShareRoomData}
         renderItem={renderPost}
         keyExtractor={item => item.id}
         showsVerticalScrollIndicator={false}
+      />
+      <Modal
+        isVisible={isOpenModal}
+        title={'Xác nhận'}
+        text={
+          'Bạn đã gửi thông báo muốn ghép phòng cho chủ bài viết này. Chủ bài viết sẽ liên hệ bạn sớm nhất'
+        }
+        onConfirm={() => setIsOpenModal(false)}
+        textConfirm={'Xác nhận'}
       />
     </View>
   );

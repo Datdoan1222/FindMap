@@ -8,8 +8,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useState} from 'react';
-import {useRoute} from '@react-navigation/native';
+import React, {use, useEffect, useState} from 'react';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import Carousel from 'react-native-reanimated-carousel';
 import Space from '../component/atoms/Space';
 import {COLOR} from '../constants/colorConstants';
@@ -18,6 +18,12 @@ import RowComponent from '../component/atoms/RowComponent';
 import IconStyles from '../constants/IconStyle';
 import {ICON_TYPE} from '../constants/iconConstants';
 import ButtonIcon from '../component/atoms/ButtonIcon';
+import auth from '@react-native-firebase/auth';
+import {useDispatch, useSelector} from 'react-redux';
+import {fetchPosts, toggleLike} from '../redux/postsSlide';
+import Button from '../component/atoms/Button';
+import {NAVIGATION_NAME} from '../constants/navigtionConstants';
+
 const currentUserId = '1';
 const {width: widthScreen} = Dimensions.get('window');
 const bannerWidth = widthScreen * 0.92;
@@ -26,25 +32,94 @@ const FavouriteScreen = () => {
   const route = useRoute();
   const {item} = route.params;
   const [selectedRoom, setSelectedRoom] = useState(null);
+  const {navigate} = useNavigation();
 
-  //   const likedRooms = item.filter(
-  //     room => room.likes && room.likes[currentUserId],
-  //   );
-  const likedRooms = item.filter(room => room.likes);
-  const renderItem = ({item}) => (
-    <TouchableOpacity onPress={() => setSelectedRoom(item)} style={styles.card}>
-      <Image source={{uri: item.images[0]}} style={styles.image} />
-      <View style={styles.info}>
-        <Text style={styles.title}>{item.name}</Text>
-        <Text>{item.nameLocation}</Text>
-        <RowComponent justify="space-between">
-          <Text style={styles.price}>Giá: {item.price}.000đ</Text>
-          <ButtonIcon name={'heart'} size={20} color={COLOR.ERROR} />
+  const {posts, error, loading} = useSelector(state => state.posts);
+  const userid = auth().currentUser?.uid;
+  //   const isExistAndTrue = item?.likes[userid] === true;
+
+  const [isToggleLike, setIsToggleLike] = useState(false);
+  const [isHeart, setIsHeart] = useState('heart-outline');
+  const dispatch = useDispatch();
+  const likedRooms = posts.filter(room => room.likes && room.likes[userid]);
+  console.log('====================================');
+  console.log(likedRooms, userid);
+  console.log('====================================');
+  //   const likedRooms = posts.filter(room => room.likes);
+  useEffect(() => {
+    // console.log('post😁😁😁😁😁😁', posts);
+    dispatch(fetchPosts());
+  }, []);
+  const handleSelectHeart = item => {
+    if (userid) {
+      setIsHeart(prev => (prev === 'heart' ? 'heart-outline' : 'heart'));
+      dispatch(toggleLike({postId: item.id, userId: userid}));
+    } else {
+      setIsToggleLike(true);
+      console.log('User chưa đăng nhập');
+    }
+  };
+  const renderItem = ({item}) => {
+    if (item.images === undefined) return;
+    return (
+      <TouchableOpacity
+        onPress={() => setSelectedRoom(item)}
+        style={styles.card}>
+        <Image source={{uri: item.images[0]}} style={styles.image} />
+        <View style={styles.info}>
+          <Text style={styles.title}>{item.name}</Text>
+          <Text>{item.nameLocation}</Text>
+          <RowComponent justify="space-between">
+            <Text style={styles.price}>Giá: {item.price}.000đ</Text>
+            <ButtonIcon
+              name={isHeart ? 'heart' : 'heart-outline'}
+              size={20}
+              color={COLOR.ERROR}
+              onPress={() => handleSelectHeart(item)}
+            />
+          </RowComponent>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+  console.log('====================================');
+  console.log(likedRooms);
+  console.log('====================================');
+  if (
+    (Array.isArray(likedRooms) && likedRooms.length === 0) ||
+    likedRooms === undefined
+  ) {
+    return (
+      <View
+        style={{
+          backgroundColor: COLOR.BACKGROUND,
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          flexDirection: 'column',
+        }}>
+        <RowComponent
+          flexDirection="column"
+          alignItems="center"
+          styles={{
+            backgroundColor: COLOR.WHITE,
+            paddingHorizontal: 25,
+            paddingVertical: 20,
+            borderRadius: 15,
+          }}>
+          <TextComponent size={20} text={'Bạn chưa có phòng yêu thích nào'} />
+          <TextComponent size={13} text={'Hãy xem các phòng ở trang chủ'} />
+          <Space height={20} />
+          <Button
+            title={'Xem ngay'}
+            onPress={() => {
+              navigate(NAVIGATION_NAME.HOME_SCREEN);
+            }}
+          />
         </RowComponent>
       </View>
-    </TouchableOpacity>
-  );
-
+    );
+  }
   return (
     <View style={{flex: 1}}>
       <FlatList
