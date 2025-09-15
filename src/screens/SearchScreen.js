@@ -46,7 +46,10 @@ const SearchScreen = () => {
       }
     });
   }, []);
-
+  useEffect(() => {
+    setSearchText('');
+    setData([]);
+  }, [currentLocation, sampleData]);
   // Helper function to validate image URL
   const isValidImageUrl = url => {
     if (!url || typeof url !== 'string') return false;
@@ -192,6 +195,7 @@ const SearchScreen = () => {
           onPress={() => {
             // Handle item press if needed
             console.log('Pressed item:', item.title);
+            navigation.navigate(NAVIGATION_NAME.POST_DETAIL_SCREEN, {item});
           }}
           activeOpacity={0.8}>
           <RowComponent styles={styles.itemContent}>

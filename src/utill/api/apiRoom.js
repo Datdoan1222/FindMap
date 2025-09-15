@@ -5,7 +5,7 @@ export const roomsAPI = [
     title: 'Phòng trọ anhdat',
     description: 'phòng trọ giá rẻ. Giá chỉ 1.xxx',
     address: 'Bửu Long, Biên Hòa, Đồng Nai, Việt Nam',
-    region: 'Bửu Long', // ví dụ: Quận 1, Quận Bình Thạnh...
+    region: 'Đồng Nai', // ví dụ: Quận 1, Quận Bình Thạnh...
     latitude: '10.955863',
     longitude: '106.799579',
     price: '1000', // giá niêm yết
@@ -62,10 +62,10 @@ export const roomsAPI = [
   {
     id: '3',
     user_id: '1', // chủ phòng (FK → users.id)
-    title: 'Phòng trọ anhdat',
+    title: 'Phòng trọ anhdat nè',
     description: 'phòng trọ giá rẻ. Giá chỉ 1.xxx',
     address: 'Bửu Long, Biên Hòa, Đồng Nai, Việt Nam',
-    region: 'Bửu Long', // ví dụ: Quận 1, Quận Bình Thạnh...
+    region: 'Đắk Lắk', // ví dụ: Quận 1, Quận Bình Thạnh...
     latitude: '10.955863',
     longitude: '106.799579',
     price: '1000', // giá niêm yết
