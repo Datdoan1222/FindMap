@@ -15,9 +15,9 @@ const {width, height} = Dimensions.get('window');
 const urlimg =
   'https://firebasestorage.googleapis.com/v0/b/map-service-1dada.appspot.com/o/phongtro%2Fbasauimg3.jpg?alt=media&token=744f6884-674f-47b2-9d1e-6afcf3ece32f';
 
-const ExploreComponent = ({key, id, item, handleSelectImg, typeImg}) => {
+const ExploreComponent = ({itemKey, id, item, handleSelectImg, typeImg}) => {
   const urlImg = item?.images === undefined ? urlimg : item?.images[0];
-  
+
   const [uri, setUri] = useState(urlImg);
   const [viewSize, setViewSize] = useState({width: 0, height: 0});
   const maxWidth = width;
@@ -44,10 +44,12 @@ const ExploreComponent = ({key, id, item, handleSelectImg, typeImg}) => {
   if (!item) {
     return <TextComponent text={'Không có phòng nào gần đây'} />; // Hoặc trả về một thành phần khác nếu không có ảnh nào
   }
+  console.log('itemKey', itemKey);
+
   return (
     <TouchableOpacity onPress={() => handleSelectImg(item)}>
       <View
-        key={id}
+        // key={id}
         style={{
           borderRadius: 15,
           width: viewSize.width,
@@ -86,9 +88,14 @@ const ExploreComponent = ({key, id, item, handleSelectImg, typeImg}) => {
       <Text
         numberOfLines={1}
         ellipsizeMode="tail"
-        style={{color: COLOR.BLACK2}}>
+        style={{
+          color: COLOR.BLACK2,
+          fontSize: 14,
+          fontWeight: '600',
+          paddingBottom: 10,
+        }}>
         <IconStyles name={'location-sharp'} size={20} color={COLOR.BLACK2} />
-        {item.nameLocation}
+        {item.title}
       </Text>
     </TouchableOpacity>
   );

@@ -19,13 +19,15 @@ import ButtonIcon from '../../component/atoms/ButtonIcon';
 import Space from '../../component/atoms/Space';
 import ExploreComponent from '../../component/molecules/ExploreComponent';
 import Banner from '../../component/atoms/Banner';
+import {postsAPI} from '../../utill/api/apiPost';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const {posts, error, loading} = useSelector(state => state.posts);
   // const userid = auth().currentUser.uid;
-
+  // console.log('posts', JSON.stringify(posts, null, 2));
   useFocusEffect(
     useCallback(() => {
       dispatch(fetchPosts());
@@ -50,7 +52,7 @@ const HomeScreen = () => {
   };
   const onPressLeft = () => {
     navigation.navigate(NAVIGATION_NAME.FAVOURITE_SCREEN, {
-      item: posts,
+      item: postsAPI,
     });
   };
   const ItemPost = ({id, item}) => {
@@ -170,7 +172,7 @@ const HomeScreen = () => {
   const leftColumn = [];
   const rightColumn = [];
 
-  posts?.forEach((item, index) => {
+  postsAPI?.forEach((item, index) => {
     if (index % 2 === 0) {
       leftColumn.push(item);
     } else {
@@ -185,7 +187,7 @@ const HomeScreen = () => {
     });
   };
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <HeaderComponent
         title="PHONG TRO"
         onPressRight={() => {
@@ -200,14 +202,14 @@ const HomeScreen = () => {
       />
       <ScrollView style={styles.feed}>
         {/* Banner */}
-        {posts && <Banner data={posts} onPress={handleBannerPress} />}
+        {postsAPI && <Banner data={postsAPI} onPress={handleBannerPress} />}
         {/* Feed */}
         <Space height={20} />
         <View style={styles.categories}>
           <TouchableOpacity
             onPress={() =>
               navigation.navigate(NAVIGATION_NAME.MY_ROOM_SCREEN, {
-                item: posts[0],
+                item: postsAPI[0],
               })
             }
             style={styles.itemCategory}>
@@ -235,7 +237,7 @@ const HomeScreen = () => {
           <TouchableOpacity
             onPress={() =>
               navigation.navigate(NAVIGATION_NAME.FAVOURITE_SCREEN, {
-                item: posts,
+                item: postsAPI,
               })
             }
             style={styles.itemCategory}>
@@ -270,10 +272,10 @@ const HomeScreen = () => {
             justifyContent: 'space-between',
           }}>
           <View style={{width: '48%'}}>
-            {leftColumn.map(item => (
+            {leftColumn.map((item, index) => (
               <ExploreComponent
-                key={item.id}
-                id={item.id}
+                key={`${item.id}-${index}`} // ✅ thêm key
+                itemKey={`${item.nameLocation}-${index}`} // nếu cần trong component con
                 item={item}
                 handleSelectImg={handleSelectImg}
               />
@@ -281,10 +283,10 @@ const HomeScreen = () => {
           </View>
 
           <View style={{width: '48%'}}>
-            {rightColumn.map(item => (
+            {rightColumn.map((item, index) => (
               <ExploreComponent
-                key={item.id}
-                id={item.id}
+                key={`${item.id}-${index}`} // ✅ thêm key
+                itemKey={`${item.nameLocation}-${index}`}
                 item={item}
                 handleSelectImg={handleSelectImg}
               />
@@ -294,7 +296,7 @@ const HomeScreen = () => {
 
         <Space height={100} />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 

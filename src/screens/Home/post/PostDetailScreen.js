@@ -25,6 +25,8 @@ import {useDispatch} from 'react-redux';
 import {toggleLike} from '../../../redux/postsSlide';
 import Modal from '../../../component/molecules/Modal';
 import {NAVIGATION_NAME} from '../../../constants/navigtionConstants';
+import {roomsAPI} from '../../../utill/api/apiRoom';
+import {usersAPI} from '../../../utill/api/apiUsers';
 const {width, height} = Dimensions.get('window');
 const PostDetailScreen = ({handleToggleLike}) => {
   const route = useRoute();
@@ -35,17 +37,14 @@ const PostDetailScreen = ({handleToggleLike}) => {
   const [isHeart, setIsHeart] = useState('heart-outline');
   const dispatch = useDispatch();
   const userid = auth().currentUser?.uid;
-  const isExistAndTrue = item?.likes[userid] === true;
-  // console.log('====================================');
-  // console.log(item?.likes, userid, isHeart);
-  // console.log('====================================');
-  useEffect(() => {
-    if (isExistAndTrue) {
-      setIsHeart('heart');
-    } else {
-      setIsHeart('heart-outline');
-    }
-  }, [isExistAndTrue]);
+  // const isExistAndTrue = item?.likes[userid] === true;
+  // useEffect(() => {
+  //   if (isExistAndTrue) {
+  //     setIsHeart('heart');
+  //   } else {
+  //     setIsHeart('heart-outline');
+  //   }
+  // }, [isExistAndTrue]);
   const handleSelectHeart = () => {
     const id = item?.id;
     if (userid) {
@@ -57,9 +56,31 @@ const PostDetailScreen = ({handleToggleLike}) => {
       console.log('User chưa đăng nhập');
     }
   };
+
+  // const userImage = item?.user?.imageUser; // Example: Safely access nested data
+  // const userName = item?.user?.nameUser || 'Unknown User'; // Example: Provide fallback
+  // const postImage = item?.images; // Example: Get post image URI
+  // const userAddress = item?.user?.addressUser;
+  // const statusText = item?.statusText;
+  // const amenities = item?.amenities;
+  // const description = item?.description;
+  // const numberLikes = item?.likes ? Object.keys(item.likes).length : '';
+
+  //thông  tin user đăng bài thì lấy từ ID user gắn tạm id [0]
+  const userImage = usersAPI[0]?.avatar;
+  const userName = usersAPI[0]?.name || 'Unknown User';
+  const userAddress = usersAPI[0]?.address;
+
+  //thông  tin post đăng bài thì lấy từ ID đưuọc truyền prop component cha qua gắn tạm id [0]
+  const postImage = roomsAPI[0]?.images;
+  const postAddress = roomsAPI[0]?.address;
+  const statusText = roomsAPI[0]?.statusText;
+  const amenities = roomsAPI[0]?.amenities;
+  const description = roomsAPI[0]?.description;
+
   useLayoutEffect(() => {
     navigation.setOptions({
-      title: `${item?.nameLocation}` || 'Chi tiết bài viết',
+      title: `${postAddress}` || 'Chi tiết bài viết',
       headerTitleStyle: {
         fontFamily: FONT.MEDIUM,
         fontSize: FONT_SIZE.BODY_1,
@@ -74,15 +95,6 @@ const PostDetailScreen = ({handleToggleLike}) => {
       ),
     });
   }, [navigation, item, isHeart]); // Thêm isHeart vào đây
-
-  const userImage = item?.user?.imageUser; // Example: Safely access nested data
-  const userName = item?.user?.nameUser || 'Unknown User'; // Example: Provide fallback
-  const postImage = item?.images; // Example: Get post image URI
-  const userAddress = item?.user?.addressUser;
-  const statusText = item?.statusText;
-  const amenities = item?.amenities;
-  const description = item?.description;
-  const numberLikes = item?.likes ? Object.keys(item.likes).length : '';
   return (
     <View style={{flex: 1}}>
       <ScrollView>
