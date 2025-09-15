@@ -26,4 +26,5 @@ export const ICON_TYPE = {
   ICON_LOCATION: 'my-location', // ICON_SET: 'MaterialIcons',
   ICON_LOCATION_OUTLINE: 'my-location', // ICON_SET: 'MaterialIcons',
   ICON_CLOCK: 'clock', // ICON_SET: 'Feather',
+  ICON_ARROW_LEFT: 'arrow-left', //Feather
 };

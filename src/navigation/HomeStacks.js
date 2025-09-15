@@ -100,7 +100,7 @@ const HomeStacks = () => {
         name={NAVIGATION_NAME.CURRENT_ADDRESS_SCREEN}
         component={CurrentAddressScreen}
         options={{
-          // headerShown: false,  
+          // headerShown: false,
           headerTitleAlign: 'center',
           title: 'Chọn khu vực',
         }}

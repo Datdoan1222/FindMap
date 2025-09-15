@@ -11,7 +11,7 @@ import {
   StatusBar,
   Image,
 } from 'react-native';
-import React, {useState, useCallback, useRef, useEffect} from 'react';
+import React, {useState, useCallback, useRef, useEffect, useMemo} from 'react';
 import {COLOR} from '../constants/colorConstants';
 import RowComponent from '../component/atoms/RowComponent';
 import TextComponent from '../component/atoms/TextComponent';
@@ -23,9 +23,11 @@ import {useNavigation} from '@react-navigation/native';
 import {NAVIGATION_NAME} from '../constants/navigtionConstants';
 import {roomsAPI} from '../utill/api/apiRoom';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import userStore from '../store/userStore';
+import {postsAPI} from '../utill/api/apiPost';
 
 // Use your actual rooms data
-const sampleData = roomsAPI;
+const sampleData = [...roomsAPI, ...postsAPI];
 
 const SearchScreen = () => {
   const navigation = useNavigation();
@@ -34,6 +36,7 @@ const SearchScreen = () => {
   const screenWidth = Dimensions.get('window').width;
   const flatListRef = useRef(null);
   const swipeableRefs = useRef({});
+  const {currentLocation} = userStore();
 
   // Close all open swipeables when needed
   const closeAllSwipeables = useCallback(() => {
@@ -58,7 +61,17 @@ const SearchScreen = () => {
       trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')
     );
   };
+  const filteredDataRegion = useMemo(() => {
+    const region = currentLocation?.parentNew || currentLocation?.parent;
 
+    if (!region?.trim() || !sampleData) {
+      return [];
+    }
+
+    return sampleData?.filter(item =>
+      item.region?.toLowerCase().includes(region.toLowerCase()),
+    );
+  }, [currentLocation, sampleData]);
   // Format price helper
   const formatPrice = price => {
     if (!price) return 'Liên hệ';
@@ -78,7 +91,7 @@ const SearchScreen = () => {
 
     // Chỉ search khi có text, nếu không thì để mảng rỗng
     if (text.trim()) {
-      const filteredData = sampleData.filter(
+      const filteredData = filteredDataRegion.filter(
         item =>
           item.title.toLowerCase().includes(text.toLowerCase()) ||
           item.address.toLowerCase().includes(text.toLowerCase()) ||
@@ -270,7 +283,11 @@ const SearchScreen = () => {
   const handleScroll = useCallback(() => {
     closeAllSwipeables();
   }, [closeAllSwipeables]);
-
+  const currentLocationName =
+    currentLocation?.parentNew || currentLocation?.parent;
+  const handleLocationPress = useCallback(() => {
+    navigation.navigate(NAVIGATION_NAME.CURRENT_ADDRESS_SCREEN);
+  }, [navigation]);
   return (
     <GestureHandlerRootView style={styles.gestureContainer}>
       <SafeAreaView style={styles.safeArea}>
@@ -281,11 +298,13 @@ const SearchScreen = () => {
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigation.navigate(NAVIGATION_NAME.HOME_SCREEN)}
-            hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+            // hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+          >
             <IconStyles
-              name={ICON_TYPE.ARROW_LEFT}
-              color={COLOR.BLACK}
-              size={24}
+              iconSet="Feather"
+              name={ICON_TYPE.ICON_ARROW_LEFT}
+              color={COLOR.BLACK1}
+              size={20}
             />
           </TouchableOpacity>
 
@@ -319,7 +338,20 @@ const SearchScreen = () => {
             </View>
           </View>
         </View>
-
+        {currentLocationName && (
+          <TouchableOpacity
+            onPress={handleLocationPress}
+            style={styles.locationButton}
+            activeOpacity={0.7}>
+            <Text style={styles.locationText}>{currentLocationName}</Text>
+            <IconStyles
+              iconSet="MaterialIcons"
+              name={ICON_TYPE.ICON_LOCATION}
+              color={COLOR.PRIMARY}
+              size={20}
+            />
+          </TouchableOpacity>
+        )}
         <View style={styles.container}>
           <FlatList
             ref={flatListRef}
@@ -344,7 +376,7 @@ const SearchScreen = () => {
                       ? 'Không có kết quả tìm kiếm'
                       : 'Nhập từ khóa để tìm kiếm phòng trọ'
                   }
-                  color={COLOR.GRAY2}
+                  color={COLOR.GRAY4}
                   size={16}
                   textAlign="center"
                 />
@@ -381,19 +413,19 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 12,
+    // paddingVertical: 12,
     backgroundColor: COLOR.WHITE,
-    borderBottomWidth: 1,
-    borderBottomColor: COLOR.GRAY1,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    // borderBottomWidth: 1,
+    // borderBottomColor: COLOR.GRAY1,
+    // elevation: 2,
+    // shadowColor: '#000',
+    // shadowOffset: {
+    //   width: 0,
+    //   height: 1,
+    // },
+    // shadowOpacity: 0.1,
+    // shadowRadius: 2,
   },
   backButton: {
     padding: 8,
@@ -408,7 +440,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR.BACKGROUND,
     borderRadius: 25,
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 2,
+    marginTop: 10,
     borderWidth: 1,
     borderColor: COLOR.GRAY1,
   },
@@ -514,5 +547,28 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+  },
+  locationButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderColor: COLOR.PRIMARY,
+    borderWidth: 1,
+    borderRadius: 8,
+    marginVertical: 8,
+    marginHorizontal: 10,
+    backgroundColor: COLOR.WHITE,
+    alignSelf: 'flex-start',
+    elevation: 1, // Android shadow
+    shadowColor: COLOR.BLACK1, // iOS shadow
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  locationText: {
+    marginRight: 8,
+    fontSize: 16,
+    color: COLOR.BLACK1,
+    fontWeight: '500',
   },
 });
