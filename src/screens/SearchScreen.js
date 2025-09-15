@@ -7,9 +7,11 @@ import {
   TouchableOpacity,
   Animated,
   Dimensions,
+  TextInput,
+  StatusBar,
+  Image,
 } from 'react-native';
 import React, {useState, useCallback, useRef, useEffect} from 'react';
-import HeaderComponent from '../component/molecules/HeaderComponent';
 import {COLOR} from '../constants/colorConstants';
 import RowComponent from '../component/atoms/RowComponent';
 import TextComponent from '../component/atoms/TextComponent';
@@ -18,140 +20,349 @@ import {GestureHandlerRootView, Swipeable} from 'react-native-gesture-handler';
 import IconStyles from '../constants/IconStyle';
 import {ICON_TYPE} from '../constants/iconConstants';
 import {useNavigation} from '@react-navigation/native';
-import ButtonIcon from '../component/atoms/ButtonIcon';
 import {NAVIGATION_NAME} from '../constants/navigtionConstants';
+import {roomsAPI} from '../utill/api/apiRoom';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
-// Sample data for the FlatList (replace with your actual data)
-const sampleData = [
-  {
-    id: '1',
-    title: 'Phòng trọ 1',
-    address: '97 Man Thiện, Hiệp Phú, Thủ Đức, Hồ Chí Minh 70000, Việt Nam',
-  },
-  {id: '2', title: 'Phòng trọ 2', address: '456 Đường XYZ, Quận Y'},
-  {
-    id: '3',
-    title: 'Phòng trọ 3',
-    address: '19 Nguyễn Hữu Thọ, Tân Phong, Quận 7, Hồ Chí Minh, Việt Nam',
-  },
-];
+// Use your actual rooms data
+const sampleData = roomsAPI;
 
 const SearchScreen = () => {
   const navigation = useNavigation();
-  const [data, setData] = useState(sampleData);
+  const [data, setData] = useState([]); // Bắt đầu với mảng rỗng
   const [searchText, setSearchText] = useState('');
-  const [itemWidth, setItemWidth] = useState(0);
-  const flatListRef = useRef(null); // Create a ref for the FlatList
+  const screenWidth = Dimensions.get('window').width;
+  const flatListRef = useRef(null);
+  const swipeableRefs = useRef({});
 
-  useEffect(() => {
-    // Calculate item width when the component mounts
-    const {width} = Dimensions.get('window');
-    setItemWidth(width - 40); // Subtract paddingHorizontal (20 * 2)
+  // Close all open swipeables when needed
+  const closeAllSwipeables = useCallback(() => {
+    Object.values(swipeableRefs.current).forEach(ref => {
+      if (ref && ref.close) {
+        ref.close();
+      }
+    });
   }, []);
-  const handleSearch = text => {
-    setSearchText(text);
-    const filteredData = sampleData.filter(
-      item =>
-        item.title.toLowerCase().includes(text.toLowerCase()) ||
-        item.address.toLowerCase().includes(text.toLowerCase()),
+
+  // Helper function to validate image URL
+  const isValidImageUrl = url => {
+    if (!url || typeof url !== 'string') return false;
+    const trimmedUrl = url.trim();
+    if (
+      trimmedUrl === '' ||
+      trimmedUrl === 'null' ||
+      trimmedUrl === 'undefined'
+    )
+      return false;
+    return (
+      trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')
     );
-    setData(filteredData);
   };
 
-  const handleDelete = useCallback(
-    itemId => {
-      Alert.alert(
-        'Xác nhận xóa',
-        'Bạn có chắc chắn muốn xóa phòng trọ này?',
-        [
-          {
-            text: 'Hủy',
-            style: 'cancel',
-          },
-          {
-            text: 'Xóa',
-            onPress: () => {
-              setData(prevData => prevData.filter(item => item.id !== itemId));
-            },
-          },
-        ],
-        {cancelable: false},
+  // Format price helper
+  const formatPrice = price => {
+    if (!price) return 'Liên hệ';
+    const numPrice = typeof price === 'string' ? parseInt(price) : price;
+    if (numPrice >= 1000) {
+      return `${(numPrice / 1000).toFixed(1)} triệu`;
+    } else if (numPrice >= 1) {
+      return `${(numPrice / 1).toFixed(0)}k`;
+    }
+    return `${numPrice}đ`;
+  };
+
+  const handleSearch = text => {
+    setSearchText(text);
+    // Close all swipeables when searching
+    closeAllSwipeables();
+
+    // Chỉ search khi có text, nếu không thì để mảng rỗng
+    if (text.trim()) {
+      const filteredData = sampleData.filter(
+        item =>
+          item.title.toLowerCase().includes(text.toLowerCase()) ||
+          item.address.toLowerCase().includes(text.toLowerCase()) ||
+          item.description.toLowerCase().includes(text.toLowerCase()) ||
+          item.region.toLowerCase().includes(text.toLowerCase()),
       );
-    },
-    [setData],
-  );
+      setData(filteredData);
+    } else {
+      setData([]); // Nếu không có text thì hiển thị mảng rỗng
+    }
+  };
+
+  const handleDelete = useCallback(itemId => {
+    Alert.alert(
+      'Xác nhận xóa',
+      'Bạn có chắc chắn muốn xóa phòng trọ này?',
+      [
+        {
+          text: 'Hủy',
+          style: 'cancel',
+          onPress: () => {
+            // Close the swipeable after canceling
+            if (swipeableRefs.current[itemId]) {
+              swipeableRefs.current[itemId].close();
+            }
+          },
+        },
+        {
+          text: 'Xóa',
+          onPress: () => {
+            setData(prevData => prevData.filter(item => item.id !== itemId));
+            // Clean up the ref
+            delete swipeableRefs.current[itemId];
+          },
+        },
+      ],
+      {cancelable: false},
+    );
+  }, []);
 
   const renderRightActions = (progress, dragX, item) => {
-    const maxSwipe = itemWidth * 0.3;
-    // console.log('====================================');
-    // console.log('dragX', dragX);
-    // console.log('====================================');
+    const trans = dragX.interpolate({
+      inputRange: [-100, -50, 0],
+      outputRange: [0, 50, 100],
+      extrapolate: 'clamp',
+    });
+
+    const scale = progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 1],
+    });
+
     return (
-      <View style={{width: maxSwipe, justifyContent: 'center'}}>
-        <TouchableOpacity
-          style={styles.rightAction}
-          onPress={() => handleDelete(item.id)}>
-          <IconStyles name={ICON_TYPE.DELETE} color={COLOR.WHITE} />
-        </TouchableOpacity>
+      <View style={styles.rightActionsContainer}>
+        <Animated.View
+          style={[
+            styles.rightActionWrapper,
+            {
+              transform: [{translateX: trans}, {scale}],
+            },
+          ]}>
+          <TouchableOpacity
+            style={styles.rightAction}
+            onPress={() => handleDelete(item.id)}>
+            <IconStyles name={ICON_TYPE.DELETE} color={COLOR.WHITE} size={20} />
+          </TouchableOpacity>
+        </Animated.View>
       </View>
     );
   };
 
-  const renderItem = ({item}) => {
-    const deleteThreshold = itemWidth / 3;
+  const renderItem = ({item, index}) => {
     return (
       <Swipeable
+        ref={ref => {
+          if (ref) {
+            swipeableRefs.current[item.id] = ref;
+          }
+        }}
         renderRightActions={(progress, dragX) =>
           renderRightActions(progress, dragX, item)
         }
         overshootRight={false}
-        friction={2} // Giảm tốc độ vuốt
-        rightThreshold={deleteThreshold} // Nếu vuốt quá 50% chiều rộng thì xóa luôn
-        onSwipeableRightOpen={() => handleDelete(item.id)} // Tự động xóa nếu vuốt hết
-      >
-        <RowComponent styles={styles.itemContainer}>
-          <View style={styles.imagePlaceholder} />
-          <Space width={10} />
-          <RowComponent
-            flexDirection="column"
-            alignItems="flex-start"
-            styles={styles.infoContainer}>
-            <TextComponent text={item.title} font="Roboto-Bold" />
-            <TextComponent text={item.address} size={12} color={COLOR.GRAY3} />
+        overshootLeft={false}
+        friction={2}
+        leftThreshold={30}
+        rightThreshold={40}
+        onSwipeableWillOpen={() => {
+          // Close other swipeables when one is opened
+          Object.keys(swipeableRefs.current).forEach(key => {
+            if (key !== item.id && swipeableRefs.current[key]) {
+              swipeableRefs.current[key].close();
+            }
+          });
+        }}>
+        <TouchableOpacity
+          style={styles.itemContainer}
+          onPress={() => {
+            // Handle item press if needed
+            console.log('Pressed item:', item.title);
+          }}
+          activeOpacity={0.8}>
+          <RowComponent styles={styles.itemContent}>
+            <View style={styles.imagePlaceholder}>
+              {item.images &&
+              item.images.length > 0 &&
+              isValidImageUrl(item.images[0]) ? (
+                <Image
+                  source={{uri: item.images[0]}}
+                  style={styles.itemImage}
+                  resizeMode="cover"
+                  onError={error => {
+                    console.log(
+                      'Image load error for item:',
+                      item.id,
+                      'URL:',
+                      item.images[0],
+                    );
+                  }}
+                />
+              ) : (
+                <View style={styles.defaultImage}>
+                  <IconStyles
+                    name={ICON_TYPE.HOME}
+                    color={COLOR.GRAY2}
+                    size={30}
+                  />
+                </View>
+              )}
+            </View>
+            <Space width={10} />
+            <RowComponent
+              flexDirection="column"
+              alignItems="flex-start"
+              styles={styles.infoContainer}>
+              <TextComponent
+                text={item.title}
+                font="Roboto-Bold"
+                numberOfLines={1}
+                size={16}
+              />
+              <Space height={4} />
+              <TextComponent
+                text={item.address}
+                size={12}
+                color={COLOR.GRAY3}
+                numberOfLines={2}
+              />
+              <Space height={4} />
+              <View style={styles.priceRow}>
+                <TextComponent
+                  text={formatPrice(item.price)}
+                  font="Roboto-Bold"
+                  color={COLOR.PRIMARY || '#E74C3C'}
+                  size={14}
+                />
+                {item.status ? (
+                  <View style={styles.statusBadge}>
+                    <TextComponent
+                      text="Còn trống"
+                      size={10}
+                      color={COLOR.WHITE}
+                      font="Roboto-Medium"
+                    />
+                  </View>
+                ) : (
+                  <View
+                    style={[
+                      styles.statusBadge,
+                      {backgroundColor: COLOR.GRAY4},
+                    ]}>
+                    <TextComponent
+                      text="Đã thuê"
+                      size={10}
+                      color={COLOR.WHITE}
+                      font="Roboto-Medium"
+                    />
+                  </View>
+                )}
+              </View>
+            </RowComponent>
           </RowComponent>
-        </RowComponent>
+        </TouchableOpacity>
       </Swipeable>
     );
   };
 
+  // Handle FlatList scroll to close swipeables
+  const handleScroll = useCallback(() => {
+    closeAllSwipeables();
+  }, [closeAllSwipeables]);
+
   return (
-    <GestureHandlerRootView style={{flex: 1}}>
-      <View style={styles.container}>
-        <HeaderComponent
-          search
-          onChangeText={handleSearch}
-          value={searchText}
-          // onPressRight={() => {}}
-          onPressLeft={() => navigation.navigate(NAVIGATION_NAME.HOME_SCREEN)}
-        />
-        <FlatList
-          ref={flatListRef}
-          data={data}
-          renderItem={renderItem}
-          keyExtractor={item => item.id}
-          contentContainerStyle={styles.flatListContent}
-          ListEmptyComponent={() => (
-            <View style={styles.emptyContainer}>
-              <TextComponent text="Không có kết quả tìm kiếm" />
+    <GestureHandlerRootView style={styles.gestureContainer}>
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar backgroundColor={COLOR.WHITE} barStyle="dark-content" />
+
+        {/* Custom Header */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.navigate(NAVIGATION_NAME.HOME_SCREEN)}
+            hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+            <IconStyles
+              name={ICON_TYPE.ARROW_LEFT}
+              color={COLOR.BLACK}
+              size={24}
+            />
+          </TouchableOpacity>
+
+          <View style={styles.searchContainer}>
+            <View style={styles.searchInputWrapper}>
+              <IconStyles
+                name={ICON_TYPE.SEARCH}
+                color={COLOR.GRAY3}
+                size={20}
+              />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Tìm kiếm phòng trọ..."
+                placeholderTextColor={COLOR.GRAY3}
+                value={searchText}
+                onChangeText={handleSearch}
+                autoFocus={true}
+                returnKeyType="search"
+              />
+              {searchText ? (
+                <TouchableOpacity
+                  onPress={() => handleSearch('')}
+                  hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+                  <IconStyles
+                    name={ICON_TYPE.CLOSE}
+                    color={COLOR.GRAY3}
+                    size={18}
+                  />
+                </TouchableOpacity>
+              ) : null}
             </View>
-          )}
-          onLayout={event => {
-            // Calculate item width when the FlatList is laid out
-            const {width} = event.nativeEvent.layout;
-            setItemWidth(width - 40); // Subtract paddingHorizontal (20 * 2)
-          }}
-        />
-      </View>
+          </View>
+        </View>
+
+        <View style={styles.container}>
+          <FlatList
+            ref={flatListRef}
+            data={data}
+            renderItem={renderItem}
+            keyExtractor={item => item.id}
+            contentContainerStyle={styles.flatListContent}
+            showsVerticalScrollIndicator={false}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+            ListEmptyComponent={() => (
+              <View style={styles.emptyContainer}>
+                <IconStyles
+                  name={searchText.trim() ? ICON_TYPE.SEARCH : ICON_TYPE.HOME}
+                  color={COLOR.GRAY2}
+                  size={50}
+                />
+                <Space height={16} />
+                <TextComponent
+                  text={
+                    searchText.trim()
+                      ? 'Không có kết quả tìm kiếm'
+                      : 'Nhập từ khóa để tìm kiếm phòng trọ'
+                  }
+                  color={COLOR.GRAY2}
+                  size={16}
+                  textAlign="center"
+                />
+              </View>
+            )}
+            // Add some performance optimizations
+            removeClippedSubviews={true}
+            maxToRenderPerBatch={10}
+            windowSize={10}
+            initialNumToRender={10}
+            getItemLayout={(data, index) => ({
+              length: 110, // Approximate item height
+              offset: 110 * index,
+              index,
+            })}
+          />
+        </View>
+      </SafeAreaView>
     </GestureHandlerRootView>
   );
 };
@@ -159,6 +370,55 @@ const SearchScreen = () => {
 export default SearchScreen;
 
 const styles = StyleSheet.create({
+  gestureContainer: {
+    flex: 1,
+    backgroundColor: COLOR.WHITE,
+  },
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLOR.WHITE,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: COLOR.WHITE,
+    borderBottomWidth: 1,
+    borderBottomColor: COLOR.GRAY1,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  backButton: {
+    padding: 8,
+    marginRight: 8,
+  },
+  searchContainer: {
+    flex: 1,
+  },
+  searchInputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLOR.BACKGROUND,
+    borderRadius: 25,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: COLOR.GRAY1,
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 8,
+    fontSize: 16,
+    color: COLOR.BLACK,
+    fontFamily: 'Roboto-Regular',
+  },
   container: {
     backgroundColor: COLOR.WHITE,
     flex: 1,
@@ -169,23 +429,73 @@ const styles = StyleSheet.create({
   },
   itemContainer: {
     backgroundColor: COLOR.BACKGROUND,
-    padding: 10,
-    borderRadius: 10,
-    marginBottom: 10,
-    alignItems: 'center',
+    borderRadius: 12,
+    marginBottom: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.22,
+    shadowRadius: 2.22,
+  },
+  itemContent: {
+    padding: 16,
+    alignItems: 'flex-start',
   },
   imagePlaceholder: {
     width: 80,
     height: 80,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  itemImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 12,
+  },
+  defaultImage: {
+    width: '100%',
+    height: '100%',
     backgroundColor: COLOR.GRAY1,
-    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 12,
   },
   infoContainer: {
     flex: 1,
-    height: '100%',
+    height: 80,
+    justifyContent: 'space-between',
+    paddingVertical: 4,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  statusBadge: {
+    backgroundColor: '#2ECC71',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
   },
   emptyContainer: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 100,
+    paddingHorizontal: 40,
+  },
+  rightActionsContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingRight: 20,
+  },
+  rightActionWrapper: {
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -193,9 +503,16 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR.FAIL,
     justifyContent: 'center',
     alignItems: 'center',
-    flex: 1,
-    paddingRight: 10,
-    borderRadius: 10,
-    marginBottom: 10,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
 });
