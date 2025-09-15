@@ -1,0 +1,62 @@
+export const postsAPI = [
+  {
+    id: '1',
+    room_id: '1',
+    owner_id: '1',
+    title: 'Phòng trọ anhdat',
+    description: 'phòng trọ giá rẻ. Giá chỉ 1.xxx',
+    images: [
+      'https://firebasestorage.googleapis.com/v0/b/map-service-1dada.appspot.com/o/phongtro%2Fbasauimg3.jpg?alt=media&token=744f6884-674f-47b2-9d1e-6afcf3ece32f',
+    ],
+    is_active: true,
+    updated_at: '2025-04-19T08:32:03.135Z',
+  },
+  {
+    id: '2',
+    room_id: '1',
+    owner_id: '1',
+    title: 'Phòng trọ Gia Minh',
+    description: 'phòng trọ giá rẻ. Giá chỉ 1.xxx',
+    images: [
+      'https://firebasestorage.googleapis.com/v0/b/map-service-1dada.appspot.com/o/phongtro%2Fbasauimg1.jpg?alt=media&token=ccf935e3-245e-4ee5-a82d-fb4a597b993d',
+    ],
+    is_active: true,
+    updated_at: '2025-04-19T08:32:03.135Z',
+  },
+  {
+    id: '3',
+    room_id: '1',
+    owner_id: '1',
+    title: 'Phòng trọ Gia Bảo',
+    description: 'phòng trọ giá rẻ. Giá chỉ 1.xxx',
+    images: [
+      'https://firebasestorage.googleapis.com/v0/b/map-service-1dada.appspot.com/o/phongtro%2Fbasauimg2.jpg?alt=media&token=bd103255-58ce-415b-87c0-b729cc3cbed2',
+    ],
+    is_active: true,
+    updated_at: '2025-04-19T08:32:03.135Z',
+  },
+  {
+    id: '4',
+    room_id: '1',
+    owner_id: '1',
+    title: 'Phòng trọ Bà bảy',
+    description: 'phòng trọ giá rẻ. Giá chỉ 1.xxx',
+    images: [
+      'https://firebasestorage.googleapis.com/v0/b/map-service-1dada.appspot.com/o/phongtro%2Fbasauimg3.jpg?alt=media&token=744f6884-674f-47b2-9d1e-6afcf3ece32f',
+    ],
+    is_active: true,
+    updated_at: '2025-04-19T08:32:03.135Z',
+  },
+  {
+    id: '5',
+    room_id: '1',
+    owner_id: '1',
+    title: 'Phòng trọ tiến Minh',
+    description: 'phòng trọ giá rẻ. Giá chỉ 1.xxx',
+    images: [
+      'https://firebasestorage.googleapis.com/v0/b/map-service-1dada.appspot.com/o/phongtro%2Fbasauimg1.jpg?alt=media&token=ccf935e3-245e-4ee5-a82d-fb4a597b993d',
+    ],
+    is_active: true,
+    updated_at: '2025-04-19T08:32:03.135Z',
+  },
+];
