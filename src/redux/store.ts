@@ -4,7 +4,7 @@ import postsReducer from './postsSlide';
 import authReducer from './authSlide';
 import usersReducer from './usersSlide';
 import postShareRoomReducer from './postShareRoomSlide';
-
+import roomsReducer from './slideNew/roomsSlice';
 // Tạo store
 const store = configureStore({
   reducer: {
@@ -13,6 +13,7 @@ const store = configureStore({
     auth: authReducer,
     users: usersReducer,
     postsShareRoomData: postShareRoomReducer,
+    rooms: roomsReducer,
   },
 });
 

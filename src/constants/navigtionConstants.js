@@ -20,7 +20,7 @@ export const NAVIGATION_NAME = {
   SHARE_ROOM_SCREEN: 'ShareRoomScreen',
   REGISTER_ROOM_SCREEN: 'RegisterRoomScreen',
   FAVOURITE_SCREEN: 'FavouriteScreen',
-
+  CURRENT_ADDRESS_SCREEN: 'CurrentAddressScreen',
   //account stack
   ACCOUNT_STACK: 'AccountStack',
   INFOR_ROOMS_SCREEN: 'InforRoomScreen',

@@ -17,6 +17,7 @@ import FavouriteScreen from '../screens/FavouriteScreen';
 import RegisterRoomScreen from '../screens/RegisterRoomScreen';
 import {FONT, FONT_SIZE} from '../constants/fontConstants';
 import RoomSharingStack from '../screens/ShareRoom/RoomSharingStack';
+import CurrentAddressScreen from '../screens/Home/CurrentAddressScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -91,6 +92,17 @@ const HomeStacks = () => {
           // headerShown: false,
           headerTitleAlign: 'center',
           title: 'Đăng kí phòng',
+        }}
+      />
+
+      {/* chọn khu vực */}
+      <Stack.Screen
+        name={NAVIGATION_NAME.CURRENT_ADDRESS_SCREEN}
+        component={CurrentAddressScreen}
+        options={{
+          // headerShown: false,  
+          headerTitleAlign: 'center',
+          title: 'Chọn khu vực',
         }}
       />
     </Stack.Navigator>

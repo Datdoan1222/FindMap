@@ -4,6 +4,8 @@ export const postsAPI = [
     room_id: '1',
     owner_id: '1',
     title: 'Phòng trọ anhdat',
+    address: 'string',
+    region: 'Đồng Nai',
     description: 'phòng trọ giá rẻ. Giá chỉ 1.xxx',
     images: [
       'https://firebasestorage.googleapis.com/v0/b/map-service-1dada.appspot.com/o/phongtro%2Fbasauimg3.jpg?alt=media&token=744f6884-674f-47b2-9d1e-6afcf3ece32f',
@@ -16,6 +18,8 @@ export const postsAPI = [
     room_id: '1',
     owner_id: '1',
     title: 'Phòng trọ Gia Minh',
+    address: 'string',
+    region: 'Đồng Nai',
     description: 'phòng trọ giá rẻ. Giá chỉ 1.xxx',
     images: [
       'https://firebasestorage.googleapis.com/v0/b/map-service-1dada.appspot.com/o/phongtro%2Fbasauimg1.jpg?alt=media&token=ccf935e3-245e-4ee5-a82d-fb4a597b993d',
@@ -28,6 +32,8 @@ export const postsAPI = [
     room_id: '1',
     owner_id: '1',
     title: 'Phòng trọ Gia Bảo',
+    address: 'string',
+    region: 'Hồ Chí Minh',
     description: 'phòng trọ giá rẻ. Giá chỉ 1.xxx',
     images: [
       'https://firebasestorage.googleapis.com/v0/b/map-service-1dada.appspot.com/o/phongtro%2Fbasauimg2.jpg?alt=media&token=bd103255-58ce-415b-87c0-b729cc3cbed2',
@@ -40,6 +46,8 @@ export const postsAPI = [
     room_id: '1',
     owner_id: '1',
     title: 'Phòng trọ Bà bảy',
+    address: 'string',
+    region: 'Hồ Chí Minh',
     description: 'phòng trọ giá rẻ. Giá chỉ 1.xxx',
     images: [
       'https://firebasestorage.googleapis.com/v0/b/map-service-1dada.appspot.com/o/phongtro%2Fbasauimg3.jpg?alt=media&token=744f6884-674f-47b2-9d1e-6afcf3ece32f',
@@ -52,6 +60,8 @@ export const postsAPI = [
     room_id: '1',
     owner_id: '1',
     title: 'Phòng trọ tiến Minh',
+    address: 'string',
+    region: 'Đắk Lắk',
     description: 'phòng trọ giá rẻ. Giá chỉ 1.xxx',
     images: [
       'https://firebasestorage.googleapis.com/v0/b/map-service-1dada.appspot.com/o/phongtro%2Fbasauimg1.jpg?alt=media&token=ccf935e3-245e-4ee5-a82d-fb4a597b993d',
