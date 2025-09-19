@@ -114,9 +114,15 @@ const SearchScreen = () => {
           item.description.toLowerCase().includes(text.toLowerCase()) ||
           item.region.toLowerCase().includes(text.toLowerCase()),
       );
-      setData(filteredData);
+
+      const uniqueData = filteredData.filter(
+        (item, index, self) =>
+          index === self.findIndex(obj => obj.id === item.id),
+      );
+
+      setData(uniqueData);
     } else {
-      setData([]); // Nếu không có text thì hiển thị mảng rỗng
+      setData([]);
     }
   };
 
@@ -274,9 +280,9 @@ const SearchScreen = () => {
           </RowComponent>
           {showOptions && (
             <ScrollView style={styles.optionsContainer}>
-              {price?.map(price => (
+              {price?.map((price, index) => (
                 <TouchableOpacity
-                  key={price.id}
+                  key={`${price.min}-${price.max}`}
                   style={styles.price}
                   onPress={() => handlePricePress(price)}>
                   <RowComponent>
@@ -295,6 +301,7 @@ const SearchScreen = () => {
           <FlatList
             ref={flatListRef}
             data={data}
+            keyExtractor={item => item.id}
             renderItem={({item}) => (
               <ItemCard
                 item={item}
@@ -307,7 +314,6 @@ const SearchScreen = () => {
                 onDelete={handleDelete}
               />
             )}
-            keyExtractor={item => item.id}
             contentContainerStyle={styles.flatListContent}
             showsVerticalScrollIndicator={false}
             onScroll={handleScroll}
