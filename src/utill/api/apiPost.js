@@ -4,7 +4,7 @@ export const postsAPI = [
     room_id: '1',
     owner_id: '1',
     title: 'Phòng trọ anhdat',
-    address: 'string',
+    address: 'Bửu Long, Biên Hòa, Đồng Nai, Việt Nam',
     region: 'Đồng Nai',
     description: 'phòng trọ giá rẻ. Giá chỉ 1.xxx',
     images: [
@@ -18,7 +18,7 @@ export const postsAPI = [
     room_id: '1',
     owner_id: '1',
     title: 'Phòng trọ Gia Minh',
-    address: 'string',
+    address: 'Bửu Long, Biên Hòa, Đồng Nai, Việt Nam',
     region: 'Đồng Nai',
     description: 'phòng trọ giá rẻ. Giá chỉ 1.xxx',
     images: [
@@ -32,7 +32,7 @@ export const postsAPI = [
     room_id: '1',
     owner_id: '1',
     title: 'Phòng trọ Gia Bảo',
-    address: 'string',
+    address: 'Bửu Long, Biên Hòa, Đồng Nai, Việt Nam',
     region: 'Hồ Chí Minh',
     description: 'phòng trọ giá rẻ. Giá chỉ 1.xxx',
     images: [
@@ -46,7 +46,7 @@ export const postsAPI = [
     room_id: '1',
     owner_id: '1',
     title: 'Phòng trọ Bà bảy',
-    address: 'string',
+    address: 'Bửu Long, Biên Hòa, Đồng Nai, Việt Nam',
     region: 'Hồ Chí Minh',
     description: 'phòng trọ giá rẻ. Giá chỉ 1.xxx',
     images: [
@@ -60,7 +60,7 @@ export const postsAPI = [
     room_id: '1',
     owner_id: '1',
     title: 'Phòng trọ tiến Minh',
-    address: 'string',
+    address: 'Bửu Long, Biên Hòa, Đồng Nai, Việt Nam',
     region: 'Đắk Lắk',
     description: 'phòng trọ giá rẻ. Giá chỉ 1.xxx',
     images: [

@@ -13,12 +13,13 @@ export const NAVIGATION_NAME = {
   ACCOUNT_SCREEN: 'AccountScreen',
   MAP_SCREEN: 'MapScreen',
   POST_DETAIL_SCREEN: 'PostDetailScreen',
+  ROOM_DETAIL_SCREEN: 'RoomDetailScreen',
   SEARCH_SCREEN: 'SearchScreen',
 
   MY_ROOM_SCREEN: 'MyRoomScreen',
   ROOM_MANAGER_SCREEN: 'RoomManagerScreen',
   SHARE_ROOM_SCREEN: 'ShareRoomScreen',
-  REGISTER_ROOM_SCREEN: 'RegisterRoomScreen',
+  MANAGER_ROOM_SCREEN: 'ManagerRoomScreen',
   FAVOURITE_SCREEN: 'FavouriteScreen',
   CURRENT_ADDRESS_SCREEN: 'CurrentAddressScreen',
   //account stack

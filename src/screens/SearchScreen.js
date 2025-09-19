@@ -25,6 +25,7 @@ import {roomsAPI} from '../utill/api/apiRoom';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import userStore from '../store/userStore';
 import {postsAPI} from '../utill/api/apiPost';
+import ItemCard from '../component/molecules/ItemCard';
 
 // Use your actual rooms data
 const sampleData = [...roomsAPI, ...postsAPI];
@@ -50,20 +51,7 @@ const SearchScreen = () => {
     setSearchText('');
     setData([]);
   }, [currentLocation, sampleData]);
-  // Helper function to validate image URL
-  const isValidImageUrl = url => {
-    if (!url || typeof url !== 'string') return false;
-    const trimmedUrl = url.trim();
-    if (
-      trimmedUrl === '' ||
-      trimmedUrl === 'null' ||
-      trimmedUrl === 'undefined'
-    )
-      return false;
-    return (
-      trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')
-    );
-  };
+
   const filteredDataRegion = useMemo(() => {
     const region = currentLocation?.parentNew || currentLocation?.parent;
 
@@ -75,17 +63,6 @@ const SearchScreen = () => {
       item.region?.toLowerCase().includes(region.toLowerCase()),
     );
   }, [currentLocation, sampleData]);
-  // Format price helper
-  const formatPrice = price => {
-    if (!price) return 'Liên hệ';
-    const numPrice = typeof price === 'string' ? parseInt(price) : price;
-    if (numPrice >= 1000) {
-      return `${(numPrice / 1000).toFixed(1)} triệu`;
-    } else if (numPrice >= 1) {
-      return `${(numPrice / 1).toFixed(0)}k`;
-    }
-    return `${numPrice}đ`;
-  };
 
   const handleSearch = text => {
     setSearchText(text);
@@ -134,154 +111,6 @@ const SearchScreen = () => {
       {cancelable: false},
     );
   }, []);
-
-  const renderRightActions = (progress, dragX, item) => {
-    const trans = dragX.interpolate({
-      inputRange: [-100, -50, 0],
-      outputRange: [0, 50, 100],
-      extrapolate: 'clamp',
-    });
-
-    const scale = progress.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0, 1],
-    });
-
-    return (
-      <View style={styles.rightActionsContainer}>
-        <Animated.View
-          style={[
-            styles.rightActionWrapper,
-            {
-              transform: [{translateX: trans}, {scale}],
-            },
-          ]}>
-          <TouchableOpacity
-            style={styles.rightAction}
-            onPress={() => handleDelete(item.id)}>
-            <IconStyles name={ICON_TYPE.DELETE} color={COLOR.WHITE} size={20} />
-          </TouchableOpacity>
-        </Animated.View>
-      </View>
-    );
-  };
-
-  const renderItem = ({item, index}) => {
-    return (
-      <Swipeable
-        ref={ref => {
-          if (ref) {
-            swipeableRefs.current[item.id] = ref;
-          }
-        }}
-        renderRightActions={(progress, dragX) =>
-          renderRightActions(progress, dragX, item)
-        }
-        overshootRight={false}
-        overshootLeft={false}
-        friction={2}
-        leftThreshold={30}
-        rightThreshold={40}
-        onSwipeableWillOpen={() => {
-          // Close other swipeables when one is opened
-          Object.keys(swipeableRefs.current).forEach(key => {
-            if (key !== item.id && swipeableRefs.current[key]) {
-              swipeableRefs.current[key].close();
-            }
-          });
-        }}>
-        <TouchableOpacity
-          style={styles.itemContainer}
-          onPress={() => {
-            // Handle item press if needed
-            console.log('Pressed item:', item.title);
-            navigation.navigate(NAVIGATION_NAME.POST_DETAIL_SCREEN, {item});
-          }}
-          activeOpacity={0.8}>
-          <RowComponent styles={styles.itemContent}>
-            <View style={styles.imagePlaceholder}>
-              {item.images &&
-              item.images.length > 0 &&
-              isValidImageUrl(item.images[0]) ? (
-                <Image
-                  source={{uri: item.images[0]}}
-                  style={styles.itemImage}
-                  resizeMode="cover"
-                  onError={error => {
-                    console.log(
-                      'Image load error for item:',
-                      item.id,
-                      'URL:',
-                      item.images[0],
-                    );
-                  }}
-                />
-              ) : (
-                <View style={styles.defaultImage}>
-                  <IconStyles
-                    name={ICON_TYPE.HOME}
-                    color={COLOR.GRAY2}
-                    size={30}
-                  />
-                </View>
-              )}
-            </View>
-            <Space width={10} />
-            <RowComponent
-              flexDirection="column"
-              alignItems="flex-start"
-              styles={styles.infoContainer}>
-              <TextComponent
-                text={item.title}
-                font="Roboto-Bold"
-                numberOfLines={1}
-                size={16}
-              />
-              <Space height={4} />
-              <TextComponent
-                text={item.address}
-                size={12}
-                color={COLOR.GRAY3}
-                numberOfLines={2}
-              />
-              <Space height={4} />
-              <View style={styles.priceRow}>
-                <TextComponent
-                  text={formatPrice(item.price)}
-                  font="Roboto-Bold"
-                  color={COLOR.PRIMARY || '#E74C3C'}
-                  size={14}
-                />
-                {item.status ? (
-                  <View style={styles.statusBadge}>
-                    <TextComponent
-                      text="Còn trống"
-                      size={10}
-                      color={COLOR.WHITE}
-                      font="Roboto-Medium"
-                    />
-                  </View>
-                ) : (
-                  <View
-                    style={[
-                      styles.statusBadge,
-                      {backgroundColor: COLOR.GRAY4},
-                    ]}>
-                    <TextComponent
-                      text="Đã thuê"
-                      size={10}
-                      color={COLOR.WHITE}
-                      font="Roboto-Medium"
-                    />
-                  </View>
-                )}
-              </View>
-            </RowComponent>
-          </RowComponent>
-        </TouchableOpacity>
-      </Swipeable>
-    );
-  };
 
   // Handle FlatList scroll to close swipeables
   const handleScroll = useCallback(() => {
@@ -360,7 +189,18 @@ const SearchScreen = () => {
           <FlatList
             ref={flatListRef}
             data={data}
-            renderItem={renderItem}
+            renderItem={({item}) => (
+              <ItemCard
+                item={item}
+                swipeableRefs={swipeableRefs}
+                onPress={itm =>
+                  navigation.navigate(NAVIGATION_NAME.ROOM_DETAIL_SCREEN, {
+                    item: itm,
+                  })
+                }
+                onDelete={handleDelete}
+              />
+            )}
             keyExtractor={item => item.id}
             contentContainerStyle={styles.flatListContent}
             showsVerticalScrollIndicator={false}
@@ -464,60 +304,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
   },
-  itemContainer: {
-    backgroundColor: COLOR.BACKGROUND,
-    borderRadius: 12,
-    marginBottom: 12,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.22,
-    shadowRadius: 2.22,
-  },
-  itemContent: {
-    padding: 16,
-    alignItems: 'flex-start',
-  },
-  imagePlaceholder: {
-    width: 80,
-    height: 80,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  itemImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 12,
-  },
-  defaultImage: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: COLOR.GRAY1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 12,
-  },
-  infoContainer: {
-    flex: 1,
-    height: 80,
-    justifyContent: 'space-between',
-    paddingVertical: 4,
-  },
-  priceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-  },
-  statusBadge: {
-    backgroundColor: '#2ECC71',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-  },
+
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -525,33 +312,7 @@ const styles = StyleSheet.create({
     paddingTop: 100,
     paddingHorizontal: 40,
   },
-  rightActionsContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    paddingRight: 20,
-  },
-  rightActionWrapper: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  rightAction: {
-    backgroundColor: COLOR.FAIL,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
+
   locationButton: {
     flexDirection: 'row',
     alignItems: 'center',

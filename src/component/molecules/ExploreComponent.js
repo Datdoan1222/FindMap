@@ -44,7 +44,7 @@ const ExploreComponent = ({itemKey, id, item, handleSelectImg, typeImg}) => {
   if (!item) {
     return <TextComponent text={'Không có phòng nào gần đây'} />; // Hoặc trả về một thành phần khác nếu không có ảnh nào
   }
-  console.log('itemKey', itemKey);
+  // console.log('itemKey', itemKey);
 
   return (
     <TouchableOpacity onPress={() => handleSelectImg(item)}>

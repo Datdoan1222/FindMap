@@ -92,7 +92,7 @@ const MapLibreScreen = () => {
   // Navigate to detail screen
   const navigateToDetail = item => {
     navigation.navigate(NAVIGATION_NAME.MAIN_SCREEN, {
-      screen: NAVIGATION_NAME.POST_DETAIL_SCREEN,
+      screen: NAVIGATION_NAME.ROOM_DETAIL_SCREEN,
       params: {item: item},
     });
     // {

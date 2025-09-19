@@ -14,10 +14,11 @@ import PostDetailScreen from '../screens/Home/post/PostDetailScreen';
 import MyRoomScreen from '../screens/MyRoomScreen';
 import RoomSharingScreen from '../screens/ShareRoom/RoomSharingScreen';
 import FavouriteScreen from '../screens/FavouriteScreen';
-import RegisterRoomScreen from '../screens/RegisterRoomScreen';
 import {FONT, FONT_SIZE} from '../constants/fontConstants';
 import RoomSharingStack from '../screens/ShareRoom/RoomSharingStack';
 import CurrentAddressScreen from '../screens/Home/CurrentAddressScreen';
+import ManagerRoomScreen from '../screens/ManagerRoomScreen';
+import RoomDetailScreen from '../screens/Home/post/RoomDetailScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -86,12 +87,21 @@ const HomeStacks = () => {
         }}
       />
       <Stack.Screen
-        name={NAVIGATION_NAME.REGISTER_ROOM_SCREEN}
-        component={RegisterRoomScreen}
+        name={NAVIGATION_NAME.MANAGER_ROOM_SCREEN}
+        component={ManagerRoomScreen}
+        options={{
+          headerShown: false,
+          headerTitleAlign: 'center',
+          title: 'Quản lí phòng',
+        }}
+      />
+      <Stack.Screen
+        name={NAVIGATION_NAME.ROOM_DETAIL_SCREEN}
+        component={RoomDetailScreen}
         options={{
           // headerShown: false,
           headerTitleAlign: 'center',
-          title: 'Đăng kí phòng',
+          title: 'Chi tiết phòng',
         }}
       />
 

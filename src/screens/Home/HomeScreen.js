@@ -40,13 +40,6 @@ const CATEGORIES = [
     params: postsAPI => ({item: postsAPI[0]}),
   },
   {
-    id: 'room_sharing',
-    title: 'Ghép phòng',
-    image: require('../../assets/images/categories_add_person.png'),
-    navigation: NAVIGATION_NAME.ROOM_SHARING_STACK,
-    params: () => ({screen: NAVIGATION_NAME.ROOM_SHARING_SCREEN}),
-  },
-  {
     id: 'favourite',
     title: 'Yêu thích',
     image: require('../../assets/images/categories_heart.png'),
@@ -55,10 +48,17 @@ const CATEGORIES = [
   },
   {
     id: 'register_room',
-    title: 'Đăng kí phòng',
+    title: 'Quản lý phòng',
     image: require('../../assets/images/categories_register_room.png'),
-    navigation: NAVIGATION_NAME.REGISTER_ROOM_SCREEN,
+    navigation: NAVIGATION_NAME.MANAGER_ROOM_SCREEN,
     params: () => ({}),
+  },
+  {
+    id: 'room_sharing',
+    title: 'Ghép phòng',
+    image: require('../../assets/images/categories_add_person.png'),
+    navigation: NAVIGATION_NAME.ROOM_SHARING_STACK,
+    params: () => ({screen: NAVIGATION_NAME.ROOM_SHARING_SCREEN}),
   },
 ];
 
@@ -138,7 +138,7 @@ const HomeScreen = () => {
 
   const handleSelectImg = useCallback(
     item => {
-      navigation.navigate(NAVIGATION_NAME.POST_DETAIL_SCREEN, {item});
+      navigation.navigate(NAVIGATION_NAME.ROOM_DETAIL_SCREEN, {item});
     },
     [navigation],
   );
@@ -146,7 +146,7 @@ const HomeScreen = () => {
   const handleBannerPress = useCallback(
     item => {
       console.log('Banner pressed:', item);
-      navigation.navigate(NAVIGATION_NAME.POST_DETAIL_SCREEN, {item});
+      navigation.navigate(NAVIGATION_NAME.ROOM_DETAIL_SCREEN, {item});
     },
     [navigation],
   );

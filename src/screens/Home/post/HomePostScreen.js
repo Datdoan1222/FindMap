@@ -43,7 +43,7 @@ const HomeScreen = () => {
   };
 
   const handleSelectImg = item => {
-    navigation.navigate(NAVIGATION_NAME.POST_DETAIL_SCREEN, {
+    navigation.navigate(NAVIGATION_NAME.ROOM_DETAIL_SCREEN, {
       item,
     });
   };
