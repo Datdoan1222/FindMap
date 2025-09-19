@@ -10,6 +10,7 @@ import {
   TextInput,
   StatusBar,
   Image,
+  ScrollView,
 } from 'react-native';
 import React, {useState, useCallback, useRef, useEffect, useMemo} from 'react';
 import {COLOR} from '../constants/colorConstants';
@@ -26,10 +27,16 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import userStore from '../store/userStore';
 import {postsAPI} from '../utill/api/apiPost';
 import ItemCard from '../component/molecules/ItemCard';
+import {useFetchSearchData} from '../hooks/useFetchSearchData ';
 
 // Use your actual rooms data
 const sampleData = [...roomsAPI, ...postsAPI];
-
+const price = [
+  {min: 500, max: 1000},
+  {min: 1000, max: 2000},
+  {min: 2000, max: 3000},
+  {min: 3000, max: 30000},
+];
 const SearchScreen = () => {
   const navigation = useNavigation();
   const [data, setData] = useState([]); // Bắt đầu với mảng rỗng
@@ -38,6 +45,10 @@ const SearchScreen = () => {
   const flatListRef = useRef(null);
   const swipeableRefs = useRef({});
   const {currentLocation} = userStore();
+  const [selectedPrice, setSelectedPrice] = useState(null);
+  const [showOptions, setShowOptions] = useState(false);
+  const [priceMin, setPriceMin] = useState(false);
+  const [priceMax, setPriceMax] = useState(false);
 
   // Close all open swipeables when needed
   const closeAllSwipeables = useCallback(() => {
@@ -50,7 +61,20 @@ const SearchScreen = () => {
   useEffect(() => {
     setSearchText('');
     setData([]);
-  }, [currentLocation, sampleData]);
+    // khi có api thật
+    // if (currentLocationName) {
+    // (async () => {
+    //   const apiData = await useFetchSearchData({
+    //     query: searchText,
+    //     region: currentLocationName,
+    //     price_min: priceMin || '',
+    //     price_max: priceMax || '',
+    //     name: searchText,
+    //   });
+    //   setData(apiData);
+    // })();
+    // }
+  }, [currentLocation, sampleData, priceMin, priceMax]);
 
   const filteredDataRegion = useMemo(() => {
     const region = currentLocation?.parentNew || currentLocation?.parent;
@@ -64,11 +88,23 @@ const SearchScreen = () => {
     );
   }, [currentLocation, sampleData]);
 
-  const handleSearch = text => {
+  const handleSearch = async text => {
     setSearchText(text);
-    // Close all swipeables when searching
     closeAllSwipeables();
 
+    // khi có api thật
+    // if (text.trim()) {
+    //   const apiData = await useFetchSearchData({
+    //     query: text,
+    //     region: currentLocationName || '',
+    //     price_min: priceMin || '',
+    //     price_max: priceMax || '',
+    //     name: text,
+    //   });
+    //   setData(apiData);
+    // } else {
+    //   setData([]);
+    // }
     // Chỉ search khi có text, nếu không thì để mảng rỗng
     if (text.trim()) {
       const filteredData = filteredDataRegion.filter(
@@ -121,6 +157,26 @@ const SearchScreen = () => {
   const handleLocationPress = useCallback(() => {
     navigation.navigate(NAVIGATION_NAME.CURRENT_ADDRESS_SCREEN);
   }, [navigation]);
+
+  // select Price
+  const handleSelectPrice = price => {
+    setShowOptions(prev => !prev);
+  };
+  const handlePricePress = async price => {
+    setSelectedPrice(price);
+    setPriceMin(price?.min);
+    setPriceMax(price?.max);
+    setShowOptions(prev => !prev);
+    // khi có api thật
+    // const apiData = await useFetchSearchData({
+    //   query: searchText,
+    //   region: currentLocationName || '',
+    //   price_min: price.min,
+    //   price_max: price.max,
+    //   name: searchText,
+    // });
+    // setData(apiData);
+  };
   return (
     <GestureHandlerRootView style={styles.gestureContainer}>
       <SafeAreaView style={styles.safeArea}>
@@ -171,20 +227,70 @@ const SearchScreen = () => {
             </View>
           </View>
         </View>
-        {currentLocationName && (
-          <TouchableOpacity
-            onPress={handleLocationPress}
-            style={styles.locationButton}
-            activeOpacity={0.7}>
-            <Text style={styles.locationText}>{currentLocationName}</Text>
-            <IconStyles
-              iconSet="MaterialIcons"
-              name={ICON_TYPE.ICON_LOCATION}
-              color={COLOR.PRIMARY}
-              size={20}
-            />
-          </TouchableOpacity>
-        )}
+        <RowComponent justify="space-between" styles={{paddingHorizontal: 10}}>
+          {currentLocationName && (
+            <TouchableOpacity
+              onPress={handleLocationPress}
+              style={styles.locationButton}
+              activeOpacity={0.7}>
+              <Text style={styles.locationText}>{currentLocationName}</Text>
+              <IconStyles
+                iconSet="MaterialIcons"
+                name={ICON_TYPE.ICON_LOCATION}
+                color={COLOR.PRIMARY}
+                size={20}
+              />
+            </TouchableOpacity>
+          )}
+          <RowComponent
+            flexDirection="column"
+            alignItems="flex-end"
+            styles={{flex: 1, width: '100%'}}>
+            <TouchableOpacity
+              style={styles.selectPriceButton}
+              onPress={handleSelectPrice}>
+              <RowComponent>
+                <TextComponent
+                  text={
+                    selectedPrice
+                      ? `${selectedPrice.min} - ${selectedPrice.max}`
+                      : 'Chọn mức giá'
+                  }
+                  color={COLOR.GREY_400}
+                  flex={1}
+                />
+                <TextComponent
+                  text={
+                    <IconStyles
+                      iconSet="Entypo"
+                      name={showOptions ? 'chevron-down' : 'chevron-up'}
+                      size={20}
+                      color={COLOR.GREY_400}
+                    />
+                  }
+                />
+              </RowComponent>
+            </TouchableOpacity>
+          </RowComponent>
+          {showOptions && (
+            <ScrollView style={styles.optionsContainer}>
+              {price?.map(price => (
+                <TouchableOpacity
+                  key={price.id}
+                  style={styles.price}
+                  onPress={() => handlePricePress(price)}>
+                  <RowComponent>
+                    <TextComponent
+                      text={`${price.min} - ${price.max}`}
+                      color={COLOR.BLACK1}
+                      flex={1}
+                    />
+                  </RowComponent>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
+        </RowComponent>
         <View style={styles.container}>
           <FlatList
             ref={flatListRef}
@@ -335,5 +441,46 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLOR.BLACK1,
     fontWeight: '500',
+  },
+  // select price
+  selectPriceButton: {
+    padding: 10,
+    borderColor: COLOR.GREY_400,
+    borderWidth: 1,
+    borderRadius: 8,
+    marginBottom: 10,
+    width: '70%',
+  },
+  optionsContainer: {
+    width: '60%',
+    maxHeight: 200,
+    marginHorizontal: 10,
+    marginBottom: 10,
+    padding: 10,
+    position: 'absolute',
+    top: 60, // tuỳ chỉnh chỗ bạn muốn nó xuất hiện
+    right: 0,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    zIndex: 999, // giúp nó nổi lên trên
+    elevation: 5, // Android cần elevation để hiển thị shadow + overlay
+  },
+  price: {
+    padding: 10,
+    borderColor: COLOR.GREY_100,
+    borderWidth: 1,
+    borderRadius: 8,
+    marginBottom: 10,
+    backgroundColor: COLOR.WHITE,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  buttonContainer: {
+    marginTop: 20,
   },
 });
