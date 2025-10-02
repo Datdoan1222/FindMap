@@ -10,6 +10,7 @@ export const roomsAPI = [
     longitude: '106.799579',
     price: '1000', // giá niêm yết
     area: 'float',
+    favorites: ['1', '2'],
     amenities: [
       'Wifi miễn phí tốc độ cao',
       'Chỗ để xe an toàn, có mái che',
@@ -40,6 +41,7 @@ export const roomsAPI = [
     longitude: '106.799579',
     price: '1000', // giá niêm yết
     area: 'float',
+    favorites: ['2'],
     amenities: [
       'Wifi miễn phí tốc độ cao',
       'Chỗ để xe an toàn, có mái che',
@@ -70,6 +72,7 @@ export const roomsAPI = [
     longitude: '106.799579',
     price: '1000', // giá niêm yết
     area: 'float',
+    favorites: ['1'],
     amenities: [
       'Wifi miễn phí tốc độ cao',
       'Chỗ để xe an toàn, có mái che',

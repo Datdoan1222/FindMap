@@ -31,6 +31,9 @@ import {convertToK} from '../../utill/convertToK.js';
 import Button from '../../component/atoms/Button.jsx';
 import {BUTTON_TYPE} from '../../constants/buttonConstants.js';
 import {NAVIGATION_NAME} from '../../constants/navigtionConstants.js';
+import {useUpdateUser, useUser} from '../../hooks/useGetInforUser.ts';
+import {USER_ID} from '../../constants/envConstants.js';
+import {uploadImageToFirebase} from '../../utill/uploadImageToFirebase.js';
 
 const HeaderRightButton = ({onPress}) => (
   <ButtonIcon
@@ -51,47 +54,77 @@ const AccountScreen = () => {
     getValues,
     setValue,
   } = useForm();
-
-  const [dataUser, setDataUser] = useState(usersAPI[0]);
+  const {data: dataUser, isLoading, error} = useUser(USER_ID);
+  const updateUser = useUpdateUser();
+  // const [dataUser, setDataUser] = useState(usersAPI[0]);
   const defaultAvatarUrl =
     'https://cellphones.com.vn/sforum/wp-content/uploads/2023/10/avatar-trang-4.jpg';
 
-  const {phone, name, email, address, owned_rooms, rented_rooms, role} =
+  const {phone, name, email, address, owned_rooms, rented_rooms, role, avatar} =
     dataUser || {};
+  // console.log('====================================');
+  console.log(JSON.stringify(dataUser, null, 2));
+  // console.log('====================================');
   const owned_roomsLength = owned_rooms?.length ?? 0;
-  const [avatar, setAvatar] = useState(null);
+  const [avatarUser, setAvatarUser] = useState(avatar);
+  console.log('avatarUser', avatarUser);
+
   const url = defaultAvatarUrl;
   // API lấy chi tiết phòng tôi đang thuê user là rented
   // useEffect(() => {
   const [dataRoom, setDataRoom] = useState(roomsAPI[0]);
   const nameRoom = dataRoom?.title;
   const imageRoom = dataRoom?.images[0];
-  const rented_rooms_start_date = rented_rooms[0]?.start_date ?? new Date(); // ngày bắt đầu thuê
-  const rented_rooms_end_date = rented_rooms[0]?.end_date ?? new Date(); // ngày hết hạn hợp đồng
-  const rented_rooms_due_date = rented_rooms[0]?.due_date ?? new Date(); // ngày hạn đóng tiền tháng
-  const rented_rooms_rent_price = rented_rooms[0]?.rent_price ?? 0; // số tiền phải đóng
+  const rented_rooms_start_date = new Date(); // ngày bắt đầu thuê
+  const rented_rooms_end_date = new Date(); // ngày hết hạn hợp đồng
+  const rented_rooms_due_date = new Date(); // ngày hạn đóng tiền tháng
+  const rented_rooms_rent_price = 0; // số tiền phải đóng
   // }, []);
+
   // Chọn ảnh từ thư viện
   const handleSelectImage = async () => {
     try {
       const uri = await SelectImage();
       if (uri) {
-        setAvatar(uri);
+        setAvatarUser(uri);
       }
     } catch (error) {
-      // console.log('Error selecting image', error);
+      console.log('Error selecting image', error);
     }
   };
 
   // Define the onPress function for the header right button
   const handleHeaderRightPress = async () => {
     const values = getValues();
-    if (avatar && avatar !== url) {
-    }
-    Alert.alert('Thông báo', 'Thay đổi thông tin thành công', [
-      {text: 'Xác nhận', onPress: () => console.log('OK Pressed')},
-    ]);
-    // gọi API update infomation user ở đây
+
+    const uri = avatarUser; // ảnh bạn chọn từ ImagePicker
+    const uploadedUrls = await uploadImageToFirebase(uri, 0);
+    console.log(uploadedUrls);
+
+    const payload = {
+      name: values.name,
+      email: values.email,
+      ...(uploadedUrls ? {avatar: uploadedUrls} : {}),
+    };
+    updateUser.mutate(
+      {
+        userId: USER_ID,
+        data: payload,
+      },
+      {
+        onSuccess: data => {
+          Alert.alert('Thành công', 'Thay đổi thông tin thành công');
+          console.log('Updated user data:', data);
+        },
+        onError: err => {
+          Alert.alert('Thông báo', 'Lỗi cập nhật thông tin');
+          console.log(
+            'Error updating user:',
+            err.response?.data?.message || err.message,
+          );
+        },
+      },
+    );
   };
 
   useEffect(() => {
@@ -216,7 +249,7 @@ const AccountScreen = () => {
           flexDirection="column"
           onPress={handleSelectImage}>
           <Image
-            source={{uri: avatar || url}}
+            source={{uri: avatarUser || url}}
             style={{
               width: 100,
               height: 100,
@@ -234,9 +267,14 @@ const AccountScreen = () => {
             />
           </RowComponent>
         </TouchableOpacity>
-        <Space width={10} />
+        <Space height={20} />
+        <TextComponent
+          text={name || 'Chưa cập nhật tên'}
+          color={COLOR.BLACK1}
+          size={27}
+        />
       </RowComponent>
-      <Space height={50} />
+      <Space height={80} />
 
       {/* Thông tin */}
       <ScrollView style={{padding: 15}}>
@@ -287,7 +325,7 @@ const AccountScreen = () => {
             />
           )}
         />
-        {role !== ROLE.OWNER ? (
+        {role === ROLE.OWNER ? (
           <Controller
             name="owned_roomsLength"
             control={control}

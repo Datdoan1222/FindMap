@@ -1,5 +1,5 @@
 import {Image, StyleSheet, Text, View, Dimensions} from 'react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import RowComponent from '../component/atoms/RowComponent';
 import TextComponent from '../component/atoms/TextComponent';
 import {COLOR} from '../constants/colorConstants';
@@ -8,9 +8,26 @@ import {BUTTON_SIZE, BUTTON_TYPE} from '../constants/buttonConstants';
 import Space from '../component/atoms/Space';
 import {useNavigation} from '@react-navigation/native';
 import {NAVIGATION_NAME} from '../constants/navigtionConstants';
+import {useCurrentAddress} from '../hooks/useGetCurrentAddress';
 const {width, height} = Dimensions.get('window');
 const SplashScreen = () => {
   const navigation = useNavigation();
+  const {getCurrentAddress} = useCurrentAddress();
+
+  // Get current address on mount
+  useEffect(() => {
+    const fetchAddressAndNavigate = async () => {
+      try {
+        await getCurrentAddress();
+        navigation.navigate(NAVIGATION_NAME.BOTTOM_TAB);
+      } catch (error) {
+        console.error('Lỗi khi lấy địa chỉ:', error);
+      }
+    };
+
+    fetchAddressAndNavigate();
+  }, [getCurrentAddress]);
+
   return (
     <RowComponent
       flexDirection="column"

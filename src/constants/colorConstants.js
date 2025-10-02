@@ -34,7 +34,7 @@ export const COLOR = {
   BLUE_50: '#FEFCEA',
   GREY_950: '#09090A',
   BLUE_900: '#FEFCEA',
-  BLUE_500: '#F8C74F',
+  YELLOW_500: '#F8C74F',
   BLUE_700: '#F8C74F',
   BLUE_800: '#F8C74F',
   BLUE_600: '#25B4DC',

@@ -16,6 +16,7 @@ import RowComponent from '../atoms/RowComponent';
 import Space from '../atoms/Space';
 
 const ItemCard = ({
+  iconDelete = ICON_TYPE.DELETE,
   item,
   swipeableRefs,
   onPress,
@@ -23,6 +24,7 @@ const ItemCard = ({
   width = '100%', // Thêm prop width với giá trị mặc định
   height = 'auto', // Thêm prop height với giá trị mặc định
   imageSize = 80, // Thêm prop để tùy biến kích thước ảnh
+  swipeEnabled = true,
 }) => {
   // --- Right Actions (Xóa) ---
   const renderRightActions = (progress, dragX) => {
@@ -47,7 +49,7 @@ const ItemCard = ({
           <TouchableOpacity
             style={styles.rightAction}
             onPress={() => onDelete?.(item.id)}>
-            <IconStyles name={ICON_TYPE.DELETE} color={COLOR.WHITE} size={20} />
+            <IconStyles name={iconDelete} color={COLOR.WHITE} size={20} />
           </TouchableOpacity>
         </Animated.View>
       </View>
@@ -100,6 +102,7 @@ const ItemCard = ({
 
   return (
     <Swipeable
+      enabled={swipeEnabled}
       ref={ref => {
         if (ref) {
           swipeableRefs.current[item.id] = ref;

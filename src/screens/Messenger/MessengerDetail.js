@@ -2,6 +2,7 @@ import {
   FlatList,
   Image,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   StyleSheet,
   Text,
@@ -14,11 +15,15 @@ import IconStyles from '../../constants/IconStyle';
 import HeaderComponent from '../../component/molecules/HeaderComponent';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {COLOR} from '../../constants/colorConstants';
+import ButtonIcon from '../../component/atoms/ButtonIcon';
+import {ICON_NAME} from '../../constants/iconConstants';
 
 const MessengerDetail = props => {
-  const {params} = useRoute();
+  const route = useRoute();
   const navigation = useNavigation();
-  const {user} = params || props;
+  const dataUser = route.params?.dataUser || props?.dataUser;
+  console.log(JSON.stringify(props?.dataUser, null, 2), 'sssssss');
+
   const [messages, setMessages] = useState([
     {id: '1', text: 'hello', fromMe: false, time: '10:00'},
     {id: '2', text: 'Chào bạn!', fromMe: true, time: '10:01'},
@@ -42,11 +47,18 @@ const MessengerDetail = props => {
         styles.messageContainer,
         item.fromMe ? styles.myMessage : styles.theirMessage,
       ]}>
-      <Text style={styles.messageText}>{item.text}</Text>
-      <Text style={styles.timeText}>{item.time}</Text>
+      <Text
+        style={[item.fromMe ? styles.myMessageText : styles.theirMessageText]}>
+        {item.text}
+      </Text>
+      <Text style={[item.fromMe ? styles.myTimeText : styles.theirTimeText]}>
+        {item.time}
+      </Text>
     </View>
   );
-
+  const onPressCall = () => {
+    if (dataUser?.phone) Linking.openURL(`tel:${dataUser?.phone}`);
+  };
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -56,12 +68,18 @@ const MessengerDetail = props => {
       <View style={styles.header}>
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <IconStyles name="arrow-back" size={24} color="#fff" />
+            <IconStyles name="arrow-back" size={24} color={COLOR.WHITE} />
           </TouchableOpacity>
-          <Image source={{uri: user.avatar}} style={styles.avatar} />
-          <Text style={styles.username}>{user.name}</Text>
+          <Image source={{uri: dataUser.avatar}} style={styles.avatar} />
+          <Text style={styles.username}>{dataUser.name}</Text>
         </View>
-        <IconStyles iconSet="Entypo" name="phone" size={24} color="#fff" />
+        <ButtonIcon
+          iconSet="Entypo"
+          name={'phone'}
+          size={22}
+          color={COLOR.WHITE}
+          onPress={onPressCall}
+        />
       </View>
 
       <FlatList
@@ -79,7 +97,7 @@ const MessengerDetail = props => {
           style={styles.input}
         />
         <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
-          <IconStyles name="send" size={20} color="#fff" />
+          <IconStyles name="send" size={20} color={COLOR.WHITE} />
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -91,7 +109,8 @@ export default MessengerDetail;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F0F0F0',
+    backgroundColor: COLOR.SECONDARY,
+    paddingTop: 50,
   },
   messageList: {
     padding: 10,
@@ -101,6 +120,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 16,
     marginVertical: 4,
+    paddingHorizontal: 20,
   },
   myMessage: {
     backgroundColor: COLOR.PRIMARY,
@@ -108,14 +128,23 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 0,
   },
   theirMessage: {
-    backgroundColor: COLOR.SECONDARY,
+    backgroundColor: COLOR.WHITE,
     alignSelf: 'flex-start',
     borderBottomLeftRadius: 0,
   },
-  messageText: {
-    color: '#fff',
+  theirMessageText: {
+    color: COLOR.BLACK1,
   },
-  timeText: {
+  myMessageText: {
+    color: COLOR.WHITE,
+  },
+  theirTimeText: {
+    fontSize: 10,
+    color: COLOR.BLACK1,
+    alignSelf: 'flex-end',
+    marginTop: 4,
+  },
+  myTimeText: {
     fontSize: 10,
     color: '#eee',
     alignSelf: 'flex-end',

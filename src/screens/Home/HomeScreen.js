@@ -8,6 +8,7 @@ import {
   Text,
   RefreshControl,
   FlatList,
+  Alert,
 } from 'react-native';
 import React, {useCallback, useEffect, useState, useMemo} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
@@ -29,38 +30,12 @@ import IconStyles from '../../constants/IconStyle';
 import {ICON_TYPE} from '../../constants/iconConstants';
 import userStore from '../../store/userStore';
 import {useCurrentAddress} from '../../hooks/useGetCurrentAddress';
-
-// Category configuration for better maintainability
-const CATEGORIES = [
-  {
-    id: 'my_room',
-    title: 'Phòng tôi',
-    image: require('../../assets/images/categories_my_room.png'),
-    navigation: NAVIGATION_NAME.MY_ROOM_SCREEN,
-    params: postsAPI => ({item: postsAPI[0]}),
-  },
-  {
-    id: 'favourite',
-    title: 'Yêu thích',
-    image: require('../../assets/images/categories_heart.png'),
-    navigation: NAVIGATION_NAME.FAVOURITE_SCREEN,
-    params: postsAPI => ({item: postsAPI}),
-  },
-  {
-    id: 'register_room',
-    title: 'Quản lý phòng',
-    image: require('../../assets/images/categories_register_room.png'),
-    navigation: NAVIGATION_NAME.MANAGER_ROOM_SCREEN,
-    params: () => ({}),
-  },
-  {
-    id: 'room_sharing',
-    title: 'Ghép phòng',
-    image: require('../../assets/images/categories_add_person.png'),
-    navigation: NAVIGATION_NAME.ROOM_SHARING_STACK,
-    params: () => ({screen: NAVIGATION_NAME.ROOM_SHARING_SCREEN}),
-  },
-];
+import Geolocation from 'react-native-geolocation-service';
+import {usePosts} from '../../hooks/usePost';
+import {ROLE, TYPE} from '../../constants/assetsConstants';
+import {ro} from 'date-fns/locale';
+import {useUser} from '../../hooks/useGetInforUser';
+import {USER_ID} from '../../constants/envConstants';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
@@ -70,19 +45,55 @@ const HomeScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
 
   const {posts, error, loading} = useSelector(state => state.posts);
-
+  const {data: dataPosts} = usePosts();
+  const {
+    data: dataUser,
+    isLoading: isLoadingUser,
+    error: errorUser,
+  } = useUser(USER_ID);
+  // Category configuration for better maintainability
+  const CATEGORIES = [
+    {
+      id: 'my_room',
+      title: 'Phòng tôi',
+      image: require('../../assets/images/categories_my_room.png'),
+      navigation: NAVIGATION_NAME.MY_ROOM_SCREEN,
+      params: postsAPI => ({item: postsAPI[0]}),
+    },
+    {
+      id: 'favourite',
+      title: 'Yêu thích',
+      image: require('../../assets/images/categories_heart.png'),
+      navigation: NAVIGATION_NAME.FAVOURITE_SCREEN,
+      params: postsAPI => ({item: postsAPI}),
+    },
+    {
+      id: 'register_room',
+      title: 'Quản lý phòng',
+      image: require('../../assets/images/categories_register_room.png'),
+      navigation: NAVIGATION_NAME.MANAGER_ROOM_SCREEN,
+      params: () => ({}),
+    },
+    {
+      id: 'room_sharing',
+      title: 'Ghép phòng',
+      image: require('../../assets/images/categories_add_person.png'),
+      navigation: NAVIGATION_NAME.ROOM_SHARING_STACK,
+      params: () => ({screen: NAVIGATION_NAME.ROOM_SHARING_SCREEN}),
+    },
+  ];
   // Memoized filtered data based on current location
   const filteredData = useMemo(() => {
     const region = currentLocation?.parentNew || currentLocation?.parent;
 
-    if (!region?.trim() || !postsAPI) {
+    if (!region?.trim() || !dataPosts) {
       return [];
     }
 
-    return postsAPI.filter(item =>
+    return dataPosts.filter(item =>
       item.region?.toLowerCase().includes(region.toLowerCase()),
     );
-  }, [currentLocation, postsAPI]);
+  }, [currentLocation, dataPosts]);
 
   // Memoized column distribution for masonry layout
   const {leftColumn, rightColumn} = useMemo(() => {
@@ -107,23 +118,17 @@ const HomeScreen = () => {
     }, [dispatch]),
   );
 
-  // Get current address on mount
-  useEffect(() => {
-    getCurrentAddress();
-  }, [getCurrentAddress]);
-
   // Pull to refresh handler
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
       await dispatch(fetchPosts());
-      await getCurrentAddress();
     } catch (error) {
       console.log('Refresh error:', error);
     } finally {
       setRefreshing(false);
     }
-  }, [dispatch, getCurrentAddress]);
+  }, [dispatch]);
 
   // Navigation handlers
   const handleSearch = useCallback(() => {
@@ -138,7 +143,11 @@ const HomeScreen = () => {
 
   const handleSelectImg = useCallback(
     item => {
-      navigation.navigate(NAVIGATION_NAME.ROOM_DETAIL_SCREEN, {item});
+      navigation.navigate(NAVIGATION_NAME.ROOM_DETAIL_SCREEN, {
+        item,
+        type: TYPE.LOOK,
+        // role: dataUser.role || ROLE.USER,
+      });
     },
     [navigation],
   );
@@ -163,6 +172,37 @@ const HomeScreen = () => {
     navigation.navigate(NAVIGATION_NAME.CURRENT_ADDRESS_SCREEN);
   }, [navigation]);
 
+  // Handlers
+  const handleGetCurrentAddress = async () => {
+    Geolocation.getCurrentPosition(
+      async position => {
+        const geo = {
+          lat: position.coords.latitude,
+          lon: position.coords.longitude,
+        };
+
+        camera.current?.setCamera({
+          centerCoordinate: [geo.lon, geo.lat],
+          zoomLevel: 16,
+          animationDuration: 1000,
+        });
+
+        setLocationState(currentLocation);
+      },
+      error => {
+        Alert.alert('Không thể lấy vị trí hiện tại', 'Vui lòng thử lại sau.');
+      },
+      {
+        enableHighAccuracy: true,
+        accuracy: {
+          android: 'high',
+          ios: 'best',
+        },
+        timeout: 10000,
+        maximumAge: 5000,
+      },
+    );
+  };
   // Render category item
   const renderCategoryItem = useCallback(
     ({item: category}) => (

@@ -11,6 +11,11 @@ import {ICON_TYPE} from '../constants/iconConstants';
 import {getFormattedTime} from '../utill/time';
 import {FONT} from '../constants/fontConstants';
 import ButtonIcon from '../component/atoms/ButtonIcon';
+import {USER_ID} from '../constants/envConstants';
+import {useUser} from '../hooks/useGetInforUser';
+import {useManagerRooms, useMyRooms, useRooms} from '../hooks/useRooms';
+import {formatDate} from '../utill/convertTime';
+import {convertToK} from '../utill/convertToK';
 const recipientName = 'Nguyễn Văn Sáu';
 const bankName = 'Vietcombank';
 const accountNumber = '0123456789';
@@ -18,16 +23,40 @@ const amount = 1000000;
 const MyRoomScreen = () => {
   const route = useRoute();
   const {item} = route.params;
+  const {data: dataUser, isLoading, error} = useUser(USER_ID);
+  const {data: dataRoom} = useRooms(USER_ID);
+  const dataMyRoom = dataRoom?.find(r => r.owner_id === USER_ID);
+  console.log('dataRoom', JSON.stringify(dataMyRoom, null, 2));
+  // console.log('room', room);
+
   const [isOpenPayment, setIsOpenPayment] = useState(false);
   const navigation = useNavigation();
-  const userImage = item?.user?.imageUser; // Example: Safely access nested data
-  const userName = item?.user?.nameUser || 'Unknown User'; // Example: Provide fallback
-  const postImage = item?.images; // Example: Get post image URI
-  const userAddress = item?.user?.addressUser;
-  const statusText = item?.statusText;
-  const amenities = item?.amenities;
-  const description = item?.description;
+  const {
+    id,
+    owner_id,
+    user_id,
+    title,
+    description,
+    address,
+    region,
+    amenities,
+    images,
+    status,
+    rent_price,
+    rent_start_date,
+    rent_end_date,
+    due_date,
+    updated_at,
+  } = dataMyRoom || {};
   const numberLikes = item?.likes ? Object.keys(item.likes).length : '';
+  if (!dataMyRoom) {
+    return (
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <Text>Đang tải dữ liệu...</Text>
+      </View>
+    );
+  }
+
   return (
     <>
       <ScrollView>
@@ -38,7 +67,7 @@ const MyRoomScreen = () => {
           styles={{width: '100%'}}>
           <Image
             style={{width: '100%', height: 200}}
-            source={{uri: item?.images[0]}}
+            source={{uri: item?.images[0]} ?? ''}
           />
         </RowComponent>
         <RowComponent
@@ -55,14 +84,14 @@ const MyRoomScreen = () => {
             font={FONT.BOLD}
             size={16}
             color={COLOR.BLACK1}
-            text={`Phòng số 2 `}
+            text={title ?? 'Phòng trọ'}
           />
           <TextComponent
             numberOfLines={4}
             font={FONT.BOLD}
             size={12}
             color={COLOR.GRAY}
-            text={`${item?.nameLocation}`}
+            text={address}
           />
           <Space height={10} />
           {/* <RowComponent
@@ -204,7 +233,7 @@ const MyRoomScreen = () => {
               numberOfLines={5}
               styles={{fontStyle: 'italic', marginLeft: 5}}
               color={COLOR.BLACK1}
-              text={description}
+              text={description ?? ''}
             />
           </RowComponent>
         )}
@@ -224,12 +253,19 @@ const MyRoomScreen = () => {
             text={'Thời gian thuê'}
           />
           <Space height={10} />
+
           <TextComponent
-            size={13}
+            size={15}
             numberOfLines={5}
             styles={{fontStyle: 'italic', marginLeft: 5}}
             color={COLOR.BLACK1}
-            text={'26/9/2024 -> 26/9/2025'}
+            text={
+              rent_start_date && rent_end_date
+                ? `${formatDate(rent_start_date)} - ${formatDate(
+                    rent_end_date,
+                  )}`
+                : 'Chưa có thời gian'
+            }
           />
         </RowComponent>
       </ScrollView>
@@ -243,9 +279,27 @@ const MyRoomScreen = () => {
           borderWidth: 2,
           borderColor: COLOR.GRAY2,
         }}>
-        <RowComponent flexDirection="column">
-          <TextComponent color={COLOR.PRIMARY} text={'1.000.000đ'} />
-          <TextComponent size={12} color={COLOR.GRAY} text={'Tháng 3/2025'} />
+        <RowComponent
+          flexDirection="column"
+          justify="flex-start"
+          alignItems="flex-start">
+          <Text style={styles.amount}>
+            {rent_price.toLocaleString() ?? '-----'}
+          </Text>
+          <Text style={styles.labelAmount}>{`Hạn đóng tiền tháng này ${
+            formatDate(due_date) || '-----'
+          }`}</Text>
+          {/* <TextComponent
+            font={18}
+            // styles={{fontWeight: 'bold'}}
+            color={COLOR.DANGER}
+            // text={rent_price ? `${convertToK(rent_price)}` : '----'}
+          /> */}
+          {/* <TextComponent
+            size={12}
+            color={COLOR.GRAY}
+            // text={due_date ? `Hạn đóng tiền tháng này ` : '1000000'}
+          /> */}
         </RowComponent>
         <Button title={'Đóng tiền'} onPress={() => setIsOpenPayment(true)} />
       </RowComponent>
@@ -290,7 +344,9 @@ const MyRoomScreen = () => {
             </Text>
             <Text style={styles.infoText}>
               Số tiền:{' '}
-              <Text style={styles.amount}>{amount.toLocaleString()} VND</Text>
+              <Text style={styles.amount}>
+                {rent_price.toLocaleString()} VND
+              </Text>
             </Text>
           </View>
         </View>
@@ -336,5 +392,11 @@ const styles = StyleSheet.create({
   amount: {
     color: '#d32f2f',
     fontWeight: 'bold',
+    fontSize: 18,
+  },
+  labelAmount: {
+    fontSize: 14,
+    color: COLOR.BLACK1,
+    fontStyle: 'italic',
   },
 });

@@ -20,19 +20,22 @@ import IconStyles from '../constants/IconStyle';
 import {GestureHandlerRootView, Swipeable} from 'react-native-gesture-handler';
 import ItemCard from '../component/molecules/ItemCard';
 import {NAVIGATION_NAME} from '../constants/navigtionConstants';
-import {ROLE} from '../constants/assetsConstants';
+import {ROLE, TYPE} from '../constants/assetsConstants';
+import {useRooms} from '../hooks/useRooms';
+import {USER_ID} from '../constants/envConstants';
 export const {width, height} = Dimensions.get('window');
 
 const ManagerRoomScreen = () => {
-  console.log('====================================');
-  console.log(width);
-  console.log('====================================');
   const navigation = useNavigation();
   const handleSearch = () => {};
   const [dataUser, setDataUser] = useState(usersAPI[0]);
-  const [dataRoom, setDataRoom] = useState(roomsAPI);
-  const swipeableRefs = useRef({});
+  // const [dataRoom, setDataRoom] = useState(roomsAPI);
+  const {data: dataRooms} = useRooms();
+  const dataRoom = dataRooms
+    ? dataRooms.filter(r => r.owner_id === USER_ID)
+    : [];
 
+  const swipeableRefs = useRef({});
   const nameUser = dataUser?.name;
   const addressUser = dataUser?.address;
   const handleDelete = () => {};
@@ -54,9 +57,15 @@ const ManagerRoomScreen = () => {
         <HeaderComponent
           title="QUẢN LÝ "
           onPressLeft={handleSearch}
-          onPressRight={() => {}}
+          onPressRight={() => {
+            navigation.navigate(NAVIGATION_NAME.ADD_ROOM_SCREEN, {
+              item: {},
+              type: TYPE.EDIT,
+              role: ROLE.OWNER,
+            });
+          }}
           iconLeft="search"
-          iconRight="menu"
+          iconRight="add"
           masterScreen={true}
         />
         <RowComponent

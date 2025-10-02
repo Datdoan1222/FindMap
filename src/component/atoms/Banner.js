@@ -12,10 +12,15 @@ const urlimg =
 const {width: widthScreen} = Dimensions.get('window');
 const bannerWidth = widthScreen * 0.92;
 const bannerHeight = (widthScreen - 68) / 2.34;
-const Banner = ({data, onPress}) => {
-
+const Banner = ({
+  data,
+  onPress,
+  height = (widthScreen - 68) / 2.34,
+  isAutoPlay = true,
+  isDisable = false,
+}) => {
   return (
-    <View style={styles.banner}>
+    <View style={[styles.banner, {height: height}]}>
       {/* <Image
         style={{borderRadius: 15}}
         width="100%"
@@ -29,16 +34,18 @@ const Banner = ({data, onPress}) => {
         sliderWidth={bannerWidth}
         itemWidth={bannerWidth}
         width={widthScreen}
-        height={bannerWidth / 2}
-        autoPlay
+        height={height ? height : bannerWidth / 2}
+        autoPlay={isAutoPlay}
         autoPlayInterval={3000}
         renderItem={({item, index}) => (
           <TouchableOpacity
             key={item?.id || index}
             style={styles.bannerContai}
-            onPress={() => onPress(item)}>
+            onPress={() => !isDisable && onPress(item)}
+            // disabled={isDisable}
+          >
             <Image
-              style={[styles.bannerItem, {width: bannerWidth}]}
+              style={[styles.bannerItem, {width: bannerWidth, height: height}]}
               resizeMode="cover"
               source={{
                 uri: item?.images?.[0] || urlimg,
@@ -58,7 +65,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
-    height: bannerHeight,
     borderRadius: 15,
     overflow: 'hidden',
     zIndex: 99,
@@ -68,7 +74,6 @@ const styles = StyleSheet.create({
   },
   bannerItem: {
     width: bannerWidth,
-    height: bannerHeight,
     borderRadius: 15,
   },
 });

@@ -61,7 +61,7 @@ export const useCurrentAddress = () => {
           };
 
           setCurrentLocation(currentAddress);
-          console.log('currentAddress', currentAddress);
+          console.log('currentAddress', currentAddress.display_name);
         } catch (err) {
           console.log('Error fetching street name:', err?.response);
           setError('Không thể lấy địa chỉ từ mapService');

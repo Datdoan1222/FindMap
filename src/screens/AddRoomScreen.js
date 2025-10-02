@@ -9,46 +9,43 @@ import {
   Modal as RNModal,
   View,
   TouchableWithoutFeedback,
-  Linking,
 } from 'react-native';
 import React, {useCallback, useEffect, useLayoutEffect, useState} from 'react';
 import {useNavigation, useRoute} from '@react-navigation/native';
-import RowComponent from '../../../component/atoms/RowComponent';
-import {FONT, FONT_SIZE} from '../../../constants/fontConstants';
-import {COLOR} from '../../../constants/colorConstants';
-import TextComponent from '../../../component/atoms/TextComponent';
-import IconStyles from '../../../constants/IconStyle';
-import Space from '../../../component/atoms/Space';
-import Button from '../../../component/atoms/Button';
-import Modal from '../../../component/molecules/Modal';
-import {NAVIGATION_NAME} from '../../../constants/navigtionConstants';
-import {ROLE, TYPE} from '../../../constants/assetsConstants';
-import {showMessage, hideMessage} from 'react-native-flash-message';
-import {updateRoom} from '../../../redux/slideNew/roomsSlice';
-import {useToggleFavourite} from '../../../hooks/useFetchFavouriteData';
-import {SelectImage} from '../../../utils/SelectImage';
-import Input from '../../../component/atoms/Input';
+import {COLOR} from '../constants/colorConstants';
+import HeaderRoom from '../component/organisms/DetailRooms/HeaderRoom';
+import ImageRoom from '../component/organisms/DetailRooms/ImageRoom';
+import RowComponent from '../component/atoms/RowComponent';
+import TitleRoom from '../component/organisms/DetailRooms/TitleRoom';
+import RatingRoom from '../component/organisms/DetailRooms/RatingRoom';
+import AddressRoom from '../component/organisms/DetailRooms/AddressRoom';
+import Space from '../component/atoms/Space';
+import AmenitiesRoom from '../component/organisms/DetailRooms/AmenitiesRoom';
+import DescriptionRoom from '../component/organisms/DetailRooms/DescriptionRoom';
+import {toPrice} from '../utill/toPrice';
+import Modal from '../component/molecules/Modal';
+import {ROLE, TYPE} from '../constants/assetsConstants';
+import {USER_ID} from '../constants/envConstants';
+import {useUser} from '../hooks/useGetInforUser';
+import {useRooms} from '../hooks/useRooms';
+import {useToggleFavourite} from '../hooks/useFetchFavouriteData';
 import {Controller, useForm} from 'react-hook-form';
-import {USER_ID} from '../../../constants/envConstants';
-import HeaderRoom from '../../../component/organisms/DetailRooms/HeaderRoom';
-import {useUser} from '../../../hooks/useGetInforUser';
-import {useRooms} from '../../../hooks/useRooms';
-import {toPrice} from '../../../utill/toPrice';
-import ImageRoom from '../../../component/organisms/DetailRooms/ImageRoom';
-import Banner from '../../../component/atoms/Banner';
-import TitleRoom from '../../../component/organisms/DetailRooms/TitleRoom';
-import RatingRoom from '../../../component/organisms/DetailRooms/RatingRoom';
-import AddressRoom from '../../../component/organisms/DetailRooms/AddressRoom';
-import AmenitiesRoom from '../../../component/organisms/DetailRooms/AmenitiesRoom';
-import DescriptionRoom from '../../../component/organisms/DetailRooms/DescriptionRoom';
-import PriceRoom from '../../../component/organisms/DetailRooms/PriceRoom';
+import Banner from '../component/atoms/Banner';
+import TextComponent from '../component/atoms/TextComponent';
+import Button from '../component/atoms/Button';
+import {FONT, FONT_SIZE} from '../constants/fontConstants';
+import {SelectImage} from '../utils/SelectImage';
+import Input from '../component/atoms/Input';
+import PriceRoom from '../component/organisms/DetailRooms/PriceRoom';
+import {NAVIGATION_NAME} from '../constants/navigtionConstants';
+import IconStyles from '../constants/IconStyle';
 
 const {width, height} = Dimensions.get('window');
-const RoomDetailScreen = ({handleToggleLike}) => {
+const AddRoomScreen = ({handleToggleLike}) => {
+  console.log('RoomDetailScreen renders');
   const route = useRoute();
   const {item, role, type} = route.params;
   const isLook = type === TYPE.LOOK;
-  console.log('RoomDetailScreen renders', isLook);
   const isEdit = type === TYPE.EDIT;
   const isOwner = role === ROLE.OWNER;
 
@@ -58,15 +55,10 @@ const RoomDetailScreen = ({handleToggleLike}) => {
     avatar: userImage,
     name: userName,
     address: userAddress,
-    phone: userPhone,
   } = dataUser || {};
-  console.log(dataUser, '😁😁😁😁😁');
-
   const {data: dataRoom} = useRooms();
-  const roomDetail = dataRoom
-    ? dataRoom.filter(r => r.id === item?.room_id)
-    : [];
-
+  const roomDetail = dataRoom?.find(room => room._id === item?.room_id) || {};
+  console.log('roomDetail', item?.room_id);
   const {
     _id: idRoom,
     images: imagesRoom,
@@ -81,23 +73,32 @@ const RoomDetailScreen = ({handleToggleLike}) => {
     longitude,
     price,
     area,
+    images,
     status,
     rent_price,
     rent_start_date,
     rent_end_date,
     due_date,
     updated_at,
-  } = roomDetail?.[0] || {};
+  } = roomDetail || {};
 
-  console.log(roomDetail, 'sss');
-  const [amenities, setAmenities] = useState(amenitiesRoom || []);
   const [isOpenImage, setIsOpenImage] = useState(false);
-  const [avatar, setAvatar] = useState(imagesRoom || []);
+  const [avatar, setAvatar] = useState([]);
+
   const [selectedImage, setSelectedImage] = useState('');
   const toggleFavourite = useToggleFavourite();
 
   const [isOpenModalLogin, setIsOpenModalLogin] = useState(false);
+  // Existing states
 
+  // Edit states for form data
+  const [editedAddress, setEditedAddress] = useState(addressRoom || '');
+  const [amenities, setAmenities] = useState(amenitiesRoom || []);
+
+  const [editedDescription, setEditedDescription] = useState(
+    descriptionRoom || '',
+  );
+  const [newAmenity, setNewAmenity] = useState('');
   const [isHeart, setIsHeart] = useState(false);
 
   const {
@@ -113,6 +114,29 @@ const RoomDetailScreen = ({handleToggleLike}) => {
       setAvatar(imagesRoom);
     }
   }, [imagesRoom]);
+  // Chọn ảnh từ thư viện
+  const handleSelectImage = async () => {
+    try {
+      const uri = await SelectImage();
+      if (uri) {
+        setAvatar(uri);
+      }
+    } catch (error) {
+      // console.log('Error selecting image', error);
+    }
+  };
+  // Save functions
+  const saveAddress = async newAddress => {
+    console.log('newAddress', newAddress);
+  };
+
+  const saveDescription = async newDescription => {
+    console.log('newDescription', newDescription);
+  };
+
+  const saveAmenities = async newAmenities => {
+    console.log('newAmenities', newAmenities);
+  };
 
   const handleToggle = () => {
     toggleFavourite.mutate({dataRoom, user_id: USER_ID});
@@ -148,17 +172,9 @@ const RoomDetailScreen = ({handleToggleLike}) => {
     setSelectedImage(item); // hoặc item.images[0]
     setIsOpenImage(true);
   }, []);
-  const onPressCall = () => {
-    if (userPhone) Linking.openURL(`tel:${userPhone}`);
-  };
-  const onPressSMS = () => {
-    console.log('ádadsasdsa');
-
-    navigation.navigate(NAVIGATION_NAME.MESSENGER_STACK, {
-      screen: NAVIGATION_NAME.MESSENGER_DETAIL_SCREEN,
-      params: {dataUser: dataUser},
-    });
-  };
+  console.log('====================================');
+  console.log(imagesRoom, avatar);
+  console.log('====================================');
   return (
     <View style={{flex: 1}}>
       <ScrollView>
@@ -177,7 +193,7 @@ const RoomDetailScreen = ({handleToggleLike}) => {
           isEdit={isEdit}
           isLook={isLook}
           onPressBanner={() => handleBannerPress(avatar)}
-          // onPressImage={handleSelectImage}
+          onPressImage={handleSelectImage}
         />
         <Space height={10} />
         {/* Title and Rating section */}
@@ -193,6 +209,7 @@ const RoomDetailScreen = ({handleToggleLike}) => {
           <TitleRoom
             titleRoom={titleRoom}
             isLook={isLook}
+            isEdit={isEdit}
             control={control}
             errors={errors}
           />
@@ -213,7 +230,7 @@ const RoomDetailScreen = ({handleToggleLike}) => {
             saveAddressCallback={newAddress => {
               // Xử lý lưu địa chỉ
               console.log('Địa chỉ mới:', newAddress);
-              // saveAddress(newAddress);
+              saveAddress(newAddress);
             }}
           />
         </RowComponent>
@@ -221,11 +238,7 @@ const RoomDetailScreen = ({handleToggleLike}) => {
         <Space height={10} />
 
         {/* Amenities Section */}
-        <AmenitiesRoom
-          amenities={amenities}
-          isLook={isLook}
-          onChange={setAmenities}
-        />
+        <AmenitiesRoom amenities={amenities} onChange={setAmenities} />
 
         <Space height={10} />
 
@@ -245,8 +258,6 @@ const RoomDetailScreen = ({handleToggleLike}) => {
         isLook={isLook}
         control={control}
         errors={errors}
-        onPressCall={onPressCall}
-        onPressSMS={onPressSMS}
       />
 
       {/* Existing Modal */}
@@ -291,4 +302,4 @@ const RoomDetailScreen = ({handleToggleLike}) => {
   );
 };
 
-export default RoomDetailScreen;
+export default AddRoomScreen;

@@ -9,28 +9,27 @@ import {
 import React from 'react';
 import {useNavigation} from '@react-navigation/native';
 import HeaderComponent from '../../component/molecules/HeaderComponent';
-import { NAVIGATION_NAME } from '../../constants/navigtionConstants';
+import {NAVIGATION_NAME} from '../../constants/navigtionConstants';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import RowComponent from '../../component/atoms/RowComponent';
+import TextComponent from '../../component/atoms/TextComponent';
+import {USER_ID} from '../../constants/envConstants';
+import {useUser} from '../../hooks/useGetInforUser';
 const dummyChats = [
   {
     id: '1',
-    name: 'Nguyễn Văn A',
-    avatar: 'https://i.pravatar.cc/150?img=1',
+    name: 'chutrrone',
+    avatar:
+      'https://firebasestorage.googleapis.com/v0/b/map-service-1dada.appspot.com/o/phongtro%2F1759397715208_0.jpg?alt=media&token=43cecedd-2133-4a9c-b72c-64a03f1b4e1a',
     lastMessage: 'hello',
     time: '10:45',
   },
   {
     id: '2',
-    name: 'Trần Thị B',
+    name: 'anhdat',
     avatar: 'https://i.pravatar.cc/150?img=2',
     lastMessage: 'hello',
     time: '09:20',
-  },
-  {
-    id: '3',
-    name: 'Phạm Văn C',
-    avatar: 'https://i.pravatar.cc/150?img=3',
-    lastMessage: 'hello',
-    time: 'Hôm qua',
   },
 ];
 const dummyUsers = [
@@ -63,25 +62,32 @@ const dummyUsers = [
 
 const MessengerScreen = () => {
   const navigation = useNavigation();
+  const {data: dataUser, isLoading, error} = useUser(USER_ID);
 
- const renderUserItem = ({ item }) => (
+  const renderUserItem = ({item}) => (
     <TouchableOpacity
       style={styles.userItem}
-      onPress={() => navigation.navigate(NAVIGATION_NAME.MESSENGER_DETAIL_SCREEN, { user: item })}
-    >
-      <Image source={{ uri: item.avatar }} style={styles.userAvatar} />
+      onPress={() =>
+        navigation.navigate(NAVIGATION_NAME.MESSENGER_DETAIL_SCREEN, {
+          user: item,
+        })
+      }>
+      <Image source={{uri: item.avatar}} style={styles.userAvatar} />
       <Text style={styles.userName} numberOfLines={1}>
         {item.name}
       </Text>
     </TouchableOpacity>
   );
 
-  const renderChatItem = ({ item }) => (
+  const renderChatItem = ({item}) => (
     <TouchableOpacity
       style={styles.chatItem}
-      onPress={() => navigation.navigate(NAVIGATION_NAME.MESSENGER_DETAIL_SCREEN, { user: item })}
-    >
-      <Image source={{ uri: item.avatar }} style={styles.avatar} />
+      onPress={() =>
+        navigation.navigate(NAVIGATION_NAME.MESSENGER_DETAIL_SCREEN, {
+          params: {dataUser: dataUser},
+        })
+      }>
+      <Image source={{uri: item.avatar}} style={styles.avatar} />
       <View style={styles.chatInfo}>
         <View style={styles.chatHeader}>
           <Text style={styles.name}>{item.name}</Text>
@@ -95,26 +101,36 @@ const MessengerScreen = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <HeaderComponent
         title={'Tin nhắn'}
         onPressLeft={() => navigation.goBack()}
       />
-       <View style={styles.userListContainer}>
+      {/* <View style={styles.userListContainer}>
         <FlatList
           data={dummyUsers}
-          keyExtractor={(item) => item.id}
+          keyExtractor={item => item.id}
           renderItem={renderUserItem}
           horizontal
           showsHorizontalScrollIndicator={false}
         />
-      </View>
+      </View> */}
+      <RowComponent
+        styles={{
+          padding: 10,
+        }}>
+        <TextComponent
+          text={'Tất cả các tin nhắn'}
+          styles={{fontWeight: 'bold'}}
+          size={17}
+        />
+      </RowComponent>
       <FlatList
         data={dummyChats}
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => item.id}
         renderItem={renderChatItem}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -182,4 +198,3 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 });
-

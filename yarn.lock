@@ -4191,6 +4191,32 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tanstack/query-core@npm:4.41.0":
+  version: 4.41.0
+  resolution: "@tanstack/query-core@npm:4.41.0"
+  checksum: 285d1d138ee752139a37871c05d56f75ac2a5583b9eb91de5656a0e0568cbc8066ac512a2744b3be592fa2b5ce362bcf1a3060968299c59e4d2ec8f6d34e2c3c
+  languageName: node
+  linkType: hard
+
+"@tanstack/react-query@npm:4":
+  version: 4.41.0
+  resolution: "@tanstack/react-query@npm:4.41.0"
+  dependencies:
+    "@tanstack/query-core": 4.41.0
+    use-sync-external-store: ^1.2.0
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+    react-native: "*"
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+    react-native:
+      optional: true
+  checksum: 9f0bc08c02011d4b3a24d57071d4c480421b90ce5d7cc4fd5e9b418e2fffe035c01707216c1789522387730e5225eb436d854d517fa8ef8eb4d31b5577ce6857
+  languageName: node
+  linkType: hard
+
 "@testing-library/react-native@npm:^13.2.0":
   version: 13.3.3
   resolution: "@testing-library/react-native@npm:13.3.3"
@@ -10051,6 +10077,7 @@ __metadata:
     "@react-navigation/native": ^7.0.15
     "@react-navigation/native-stack": ^7.2.1
     "@reduxjs/toolkit": ^2.6.1
+    "@tanstack/react-query": 4
     "@testing-library/react-native": ^13.2.0
     "@types/jest": ^29.5.13
     "@types/react": ^19.0.0
@@ -12078,7 +12105,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"use-sync-external-store@npm:^1.4.0, use-sync-external-store@npm:^1.5.0":
+"use-sync-external-store@npm:^1.2.0, use-sync-external-store@npm:^1.4.0, use-sync-external-store@npm:^1.5.0":
   version: 1.5.0
   resolution: "use-sync-external-store@npm:1.5.0"
   peerDependencies:

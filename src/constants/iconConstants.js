@@ -28,6 +28,7 @@ export const ICON_TYPE = {
   ICON_LOCATION_OUTLINE: 'my-location', // ICON_SET: 'MaterialIcons',
   ICON_CLOCK: 'clock', // ICON_SET: 'Feather',
   ICON_ARROW_LEFT: 'arrow-left', //Feather
+  ICON_HEART_O_DIS: 'heart-dislike-outline', //Ionicons
 };
 export const ICON_NAME = {
   PLUS_CIRCLE: 'pluscircle',
@@ -49,4 +50,5 @@ export const ICON_NAME = {
   SHARE: 'share',
   STAR: 'star',
   STAR_OUTLINE: 'staro',
+  PHONE_CALL: 'phone-call', //FontAwesome6
 };

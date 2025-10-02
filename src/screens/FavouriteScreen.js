@@ -1,4 +1,5 @@
 import {
+  Alert,
   Dimensions,
   FlatList,
   Image,
@@ -8,7 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {use, useEffect, useState} from 'react';
+import React, {use, useCallback, useEffect, useRef, useState} from 'react';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import Carousel from 'react-native-reanimated-carousel';
 import Space from '../component/atoms/Space';
@@ -23,6 +24,13 @@ import {useDispatch, useSelector} from 'react-redux';
 import {fetchPosts, toggleLike} from '../redux/postsSlide';
 import Button from '../component/atoms/Button';
 import {NAVIGATION_NAME} from '../constants/navigtionConstants';
+import {roomsAPI} from '../utill/api/apiRoom';
+import ItemCard from '../component/molecules/ItemCard';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {
+  useFavouriteData,
+  useToggleFavourite,
+} from '../hooks/useFetchFavouriteData';
 
 const currentUserId = '1';
 const {width: widthScreen} = Dimensions.get('window');
@@ -33,259 +41,99 @@ const FavouriteScreen = () => {
   const {item} = route.params;
   const [selectedRoom, setSelectedRoom] = useState(null);
   const {navigate} = useNavigation();
+  const swipeableRefs = useRef({});
 
-  const {posts, error, loading} = useSelector(state => state.posts);
   const userid = auth().currentUser?.uid;
-  //   const isExistAndTrue = item?.likes[userid] === true;
-
+  const {data: favouriteRooms, isLoading} = useFavouriteData(currentUserId); // lấy api data room yêu thích từ id user
   const [isToggleLike, setIsToggleLike] = useState(false);
   const [isHeart, setIsHeart] = useState('heart-outline');
   const dispatch = useDispatch();
-  const likedRooms = posts.filter(room => room.likes && room.likes[userid]);
-  console.log('====================================');
-  console.log(likedRooms, userid);
-  console.log('====================================');
-  //   const likedRooms = posts.filter(room => room.likes);
-  useEffect(() => {
-    // console.log('post😁😁😁😁😁😁', posts);
-    dispatch(fetchPosts());
-  }, []);
-  const handleSelectHeart = item => {
-    if (userid) {
-      setIsHeart(prev => (prev === 'heart' ? 'heart-outline' : 'heart'));
-      dispatch(toggleLike({postId: item.id, userId: userid}));
-    } else {
-      setIsToggleLike(true);
-      console.log('User chưa đăng nhập');
-    }
-  };
-  const renderItem = ({item}) => {
-    if (item.images === undefined) return;
-    return (
-      <TouchableOpacity
-        onPress={() => setSelectedRoom(item)}
-        style={styles.card}>
-        <Image source={{uri: item.images[0]}} style={styles.image} />
-        <View style={styles.info}>
-          <Text style={styles.title}>{item.name}</Text>
-          <Text>{item.nameLocation}</Text>
-          <RowComponent justify="space-between">
-            <Text style={styles.price}>Giá: {item.price}.000đ</Text>
-            <ButtonIcon
-              name={isHeart ? 'heart' : 'heart-outline'}
-              size={20}
-              color={COLOR.ERROR}
-              onPress={() => handleSelectHeart(item)}
-            />
-          </RowComponent>
-        </View>
-      </TouchableOpacity>
-    );
-  };
-  console.log('====================================');
-  console.log(likedRooms);
-  console.log('====================================');
-  if (
-    (Array.isArray(likedRooms) && likedRooms.length === 0) ||
-    likedRooms === undefined
-  ) {
-    return (
-      <View
-        style={{
-          backgroundColor: COLOR.BACKGROUND,
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-          flexDirection: 'column',
-        }}>
-        <RowComponent
-          flexDirection="column"
-          alignItems="center"
-          styles={{
-            backgroundColor: COLOR.WHITE,
-            paddingHorizontal: 25,
-            paddingVertical: 20,
-            borderRadius: 15,
-          }}>
-          <TextComponent size={20} text={'Bạn chưa có phòng yêu thích nào'} />
-          <TextComponent size={13} text={'Hãy xem các phòng ở trang chủ'} />
-          <Space height={20} />
-          <Button
-            title={'Xem ngay'}
-            onPress={() => {
-              navigate(NAVIGATION_NAME.HOME_SCREEN);
-            }}
-          />
-        </RowComponent>
-      </View>
-    );
-  }
-  return (
-    <View style={{flex: 1}}>
-      <FlatList
-        data={likedRooms}
-        renderItem={renderItem}
-        keyExtractor={item => item.id.toString()}
-      />
+  const toggleFavourite = useToggleFavourite();
 
-      {/* Modal chi tiết */}
-      {selectedRoom && (
-        <Modal
-          visible={true}
-          animationType="slide"
-          onRequestClose={() => setSelectedRoom(null)}>
-          <View style={styles.modalContainer}>
-            <View style={styles.bannerContainer}>
-              <Carousel
-                data={selectedRoom.images}
-                sliderWidth={bannerWidth}
-                itemWidth={bannerWidth}
-                width={widthScreen}
-                height={bannerWidth / 2}
-                autoPlay
-                autoPlayInterval={3000}
-                renderItem={({item, index}) => (
-                  <TouchableOpacity style={styles.bannerContai}>
-                    <Image
-                      style={[styles.bannerItem, {width: bannerWidth}]}
-                      resizeMode="cover"
-                      source={{
-                        uri: item,
-                      }}
-                    />
-                  </TouchableOpacity>
-                )}
+  const [dataFavourite, setDataFavourite] = useState(
+    roomsAPI || favouriteRooms,
+  );
+  useEffect(() => {}, []);
+
+  // Close all open swipeables when needed
+  const closeAllSwipeables = useCallback(() => {
+    Object.values(swipeableRefs.current).forEach(ref => {
+      if (ref && ref.close) {
+        ref.close();
+      }
+    });
+  }, []);
+  const handleScroll = useCallback(() => {
+    closeAllSwipeables();
+  }, [closeAllSwipeables]);
+
+  return (
+    <GestureHandlerRootView style={styles.gestureContainer}>
+      <View style={{flex: 1}}>
+        <FlatList
+          data={dataFavourite}
+          keyExtractor={item => item.id.toString()}
+          renderItem={({item}) => (
+            <ItemCard
+              swipeEnabled={false}
+              iconDelete={ICON_TYPE.ICON_HEART_O_DIS}
+              item={item}
+              swipeableRefs={swipeableRefs}
+              onPress={itm =>
+                navigate(NAVIGATION_NAME.ROOM_DETAIL_SCREEN, {
+                  item: itm,
+                })
+              }
+              // onDelete={handleDelete}
+            />
+          )}
+          contentContainerStyle={styles.flatListContent}
+          showsVerticalScrollIndicator={false}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          ListEmptyComponent={() => (
+            <View style={styles.emptyContainer}>
+              <IconStyles
+                name={searchText.trim() ? ICON_TYPE.SEARCH : ICON_TYPE.HOME}
+                color={COLOR.GRAY2}
+                size={50}
+              />
+              <Space height={16} />
+              <TextComponent
+                text={
+                  searchText.trim()
+                    ? 'Không có kết quả tìm kiếm'
+                    : 'Nhập từ khóa để tìm kiếm phòng trọ'
+                }
+                color={COLOR.GRAY4}
+                size={16}
+                textAlign="center"
               />
             </View>
-            <Space height={10} />
-            <View style={styles.content}>
-              <RowComponent
-                flexDirection="column"
-                alignItems="flex-start"
-                styles={{
-                  paddingVertical: 10,
-                  paddingHorizontal: 15,
-                  backgroundColor: COLOR.WHITE,
-                }}>
-                <TextComponent
-                  size={15}
-                  styles={{fontWeight: 'bold'}}
-                  color={COLOR.BLACK1}
-                  text={'Nhà/ Phòng trọ'}
-                />
-                <TextComponent
-                  size={13}
-                  styles={{fontStyle: 'italic'}}
-                  color={COLOR.BLACK1}
-                  text={'Phương án giá rẻ bao gồm'}
-                />
-                <RowComponent
-                  flexDirection="row"
-                  alignItems="center"
-                  justify="space-between"
-                  styles={{
-                    paddingVertical: 15,
-                  }}>
-                  <RowComponent>
-                    <IconStyles name={ICON_TYPE.ICON_PEOPLE} size={22} />
-                    <TextComponent size={13} text={'Tối đa hai người'} />
-                  </RowComponent>
-                  <Space width={40} />
-                  <RowComponent>
-                    <IconStyles
-                      name={ICON_TYPE.ICON_DOOR}
-                      iconSet="FontAwesome6"
-                      size={18}
-                    />
-                    <TextComponent size={13} text={'Có gác'} />
-                  </RowComponent>
-                </RowComponent>
-              </RowComponent>
-              <Space height={10} />
-              {selectedRoom.amenities && (
-                <RowComponent
-                  flexDirection="column"
-                  alignItems="flex-start"
-                  styles={{
-                    paddingVertical: 10,
-                    paddingHorizontal: 15,
-                    backgroundColor: COLOR.WHITE,
-                  }}>
-                  <TextComponent
-                    size={15}
-                    styles={{fontWeight: 'bold'}}
-                    color={COLOR.BLACK1}
-                    text={'Các tiện nghi khác'}
-                  />
-                  <Space height={10} />
-                  {Array.isArray(selectedRoom.amenities) &&
-                    selectedRoom.amenities.map((amenity, index) => (
-                      <RowComponent
-                        key={index}
-                        style={{marginBottom: 5, alignItems: 'flex-start'}}>
-                        <IconStyles
-                          name={'check'}
-                          iconSet="Entypo"
-                          color={COLOR.SUCCESSFUL}
-                          size={20}
-                        />
-                        <TextComponent
-                          size={13}
-                          styles={{
-                            fontStyle: 'italic',
-                            marginLeft: 5,
-                            flexShrink: 1,
-                          }}
-                          color={COLOR.BLACK1}
-                          text={amenity}
-                          numberOfLines={0}
-                        />
-                      </RowComponent>
-                    ))}
-                </RowComponent>
-              )}
-              <Space height={10} />
-              {selectedRoom.description && (
-                <RowComponent
-                  flexDirection="column"
-                  alignItems="flex-start"
-                  styles={{
-                    paddingVertical: 10,
-                    paddingHorizontal: 15,
-                    backgroundColor: COLOR.WHITE,
-                  }}>
-                  <TextComponent
-                    size={15}
-                    styles={{fontWeight: 'bold'}}
-                    color={COLOR.BLACK1}
-                    text={'Mô tả'}
-                  />
-                  <Space height={10} />
-                  <TextComponent
-                    size={13}
-                    numberOfLines={5}
-                    styles={{fontStyle: 'italic', marginLeft: 5}}
-                    color={COLOR.BLACK1}
-                    text={selectedRoom.description}
-                  />
-                </RowComponent>
-              )}
-              <TouchableOpacity
-                onPress={() => setSelectedRoom(null)}
-                style={styles.closeButton}>
-                <Text style={{color: 'white'}}>Đóng</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-      )}
-    </View>
+          )}
+          // Add some performance optimizations
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={10}
+          windowSize={10}
+          initialNumToRender={10}
+          getItemLayout={(data, index) => ({
+            length: 110, // Approximate item height
+            offset: 110 * index,
+            index,
+          })}
+        />
+      </View>
+    </GestureHandlerRootView>
   );
 };
 
 export default FavouriteScreen;
 
 const styles = StyleSheet.create({
+  gestureContainer: {
+    flex: 1,
+    backgroundColor: COLOR.WHITE,
+  },
   card: {
     flexDirection: 'row',
     padding: 10,
@@ -351,5 +199,17 @@ const styles = StyleSheet.create({
     width: bannerWidth,
     height: bannerHeight,
     borderRadius: 15,
+  },
+  // flatlist
+  flatListContent: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 100,
+    paddingHorizontal: 40,
   },
 });

@@ -27,8 +27,11 @@ import Modal from '../../../component/molecules/Modal';
 import {NAVIGATION_NAME} from '../../../constants/navigtionConstants';
 import {roomsAPI} from '../../../utill/api/apiRoom';
 import {usersAPI} from '../../../utill/api/apiUsers';
+import HeaderRoom from '../../../component/organisms/DetailRooms/HeaderRoom';
 const {width, height} = Dimensions.get('window');
 const PostDetailScreen = ({handleToggleLike}) => {
+  console.log('PostDetailScreen render');
+  
   const route = useRoute();
   const {item} = route.params;
   const navigation = useNavigation();
@@ -99,57 +102,12 @@ const PostDetailScreen = ({handleToggleLike}) => {
     <View style={{flex: 1}}>
       <ScrollView>
         {/* <PostComponent key={item.id} item={item} typeImg="detail" /> */}
-        <RowComponent
-          flexDirection="row"
-          alignItems="center"
-          justify="space-between"
-          styles={styles.header_post}>
-          <RowComponent
-            alignItems="center"
-            justify="center"
-            styles={styles.imgUser_post}>
-            {userImage ? (
-              <Image
-                source={{
-                  uri: userImage,
-                }}
-                style={styles.imgUser_post}
-              />
-            ) : (
-              <IconStyles
-                name={ICON_TYPE.ICON_ACCOUNT}
-                color={COLOR.GRAY3}
-                size={26}
-              />
-            )}
-          </RowComponent>
-          <RowComponent
-            flexDirection="column"
-            alignItems="flex-start"
-            styles={styles.nameUser_post}>
-            <TextComponent
-              size={14}
-              title
-              styles={styles.text_userName}
-              text={userName}
-            />
-            <TextComponent
-              styles={styles.text_userAddress}
-              size={12}
-              text={userAddress}
-            />
-          </RowComponent>
-          <RowComponent
-            alignItems="flex-end"
-            justify="flex-end"
-            styles={styles.time_post}>
-            <TextComponent
-              size={12}
-              text={getFormattedTime(item?.createdAt)}
-              color={COLOR.GRAY3}
-            />
-          </RowComponent>
-        </RowComponent>
+        <HeaderRoom
+          userImage={userImage}
+          userName={userName}
+          userAddress={userAddress}
+          createdAt={item?.createdAt}
+        />
         <RowComponent
           flexDirection="column"
           alignItems="flex-start"
@@ -353,27 +311,6 @@ const PostDetailScreen = ({handleToggleLike}) => {
 export default PostDetailScreen;
 
 const styles = StyleSheet.create({
-  header_post: {
-    padding: 10,
-    backgroundColor: COLOR.WHITE,
-    width: '100%',
-  },
-  imgUser_post: {
-    width: 40,
-    height: 50,
-    borderRadius: 100,
-    backgroundColor: COLOR.GRAY1,
-    flex: 1,
-  },
-  nameUser_post: {
-    marginHorizontal: 10,
-    paddingHorizontal: 10,
-    flex: 5,
-  },
-  time_post: {
-    flex: 2,
-  },
-
   overlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.4)',
@@ -386,12 +323,5 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 22,
     fontWeight: 'bold',
-  },
-
-  text_userName: {
-    color: COLOR.TEXT,
-  },
-  text_userAddress: {
-    color: COLOR.GRAY3,
   },
 });
