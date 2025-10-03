@@ -43,8 +43,10 @@ export const useManagerRooms = (userId: string) =>
   );
 
 /** ------------------ CREATE ROOM ------------------ */
-export const useCreateRoom = () =>
-  useMutation(
+export const useCreateRoom = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation(
     async (payload: {
       owner_id: string;
       title: string;
@@ -61,7 +63,25 @@ export const useCreateRoom = () =>
       const {data} = await axios.post(ROOMS_URL, payload);
       return data;
     },
+    {
+      onSuccess: () => {
+        // invalidate list phòng để cập nhật UI
+        queryClient.invalidateQueries(['rooms']);
+      },
+      onError: error => {
+        if (axios.isAxiosError(error)) {
+          console.log('❌ Tạo phònxg thất bại:', {
+            status: error.response?.status,
+            data: error.response?.data, // 👉 thông tin lỗi chi tiết
+            headers: error.response?.headers,
+          });
+        } else {
+          console.log('❌ Lỗi khác:', error);
+        }
+      },
+    },
   );
+};
 
 /** ------------------ UPDATE ROOM ------------------ */
 export const useUpdateRoom = () => {
@@ -102,11 +122,25 @@ export const useUpdateRoom = () => {
 };
 
 /** ------------------ DELETE ROOM ------------------ */
-export const useDeleteRoom = () =>
-  useMutation(async (roomId: string) => {
-    const {data} = await axios.delete(`${ROOMS_URL}/${roomId}`);
-    return data;
-  });
+export const useDeleteRoom = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    async (roomId: string) => {
+      const {data} = await axios.delete(`${ROOMS_URL}/${roomId}`);
+      return data;
+    },
+    {
+      onSuccess: () => {
+        // xóa xong thì refresh lại list phòng
+        queryClient.invalidateQueries(['rooms']);
+      },
+      onError: error => {
+        console.log('❌ Xóa phòng thất bại:', error);
+      },
+    },
+  );
+};
 
 /** ------------------ GET USER FAVOURITES ------------------ */
 export const useUserFavourites = (userId: string) =>

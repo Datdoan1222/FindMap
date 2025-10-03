@@ -10,6 +10,8 @@ import {
   View,
   TouchableWithoutFeedback,
   Linking,
+  ActivityIndicator,
+  Text,
 } from 'react-native';
 import React, {useCallback, useEffect, useLayoutEffect, useState} from 'react';
 import {useNavigation, useRoute} from '@react-navigation/native';
@@ -32,7 +34,7 @@ import {Controller, useForm} from 'react-hook-form';
 import {USER_ID} from '../../../constants/envConstants';
 import HeaderRoom from '../../../component/organisms/DetailRooms/HeaderRoom';
 import {useUser} from '../../../hooks/useGetInforUser';
-import {useRooms} from '../../../hooks/useRooms';
+import {useRooms, useUpdateRoom} from '../../../hooks/useRooms';
 import {toPrice} from '../../../utill/toPrice';
 import ImageRoom from '../../../component/organisms/DetailRooms/ImageRoom';
 import Banner from '../../../component/atoms/Banner';
@@ -42,33 +44,32 @@ import AddressRoom from '../../../component/organisms/DetailRooms/AddressRoom';
 import AmenitiesRoom from '../../../component/organisms/DetailRooms/AmenitiesRoom';
 import DescriptionRoom from '../../../component/organisms/DetailRooms/DescriptionRoom';
 import PriceRoom from '../../../component/organisms/DetailRooms/PriceRoom';
+import {uploadImageToFirebase} from '../../../utill/uploadImageToFirebase';
 
 const {width, height} = Dimensions.get('window');
 const RoomDetailScreen = ({handleToggleLike}) => {
+  console.log('RoomDetailScreen renders');
   const route = useRoute();
-  const {item, role, type} = route.params;
+  const {id, role, type} = route.params;
   const isLook = type === TYPE.LOOK;
-  console.log('RoomDetailScreen renders', isLook);
   const isEdit = type === TYPE.EDIT;
   const isOwner = role === ROLE.OWNER;
 
   const navigation = useNavigation();
-  const {data: dataUser, isLoading, error} = useUser(USER_ID);
+  const {data: dataUser, error} = useUser(USER_ID);
   const {
     avatar: userImage,
     name: userName,
     address: userAddress,
     phone: userPhone,
   } = dataUser || {};
-  console.log(dataUser, '😁😁😁😁😁');
+  console.log(id, '😁😁😁😁😁');
 
   const {data: dataRoom} = useRooms();
-  const roomDetail = dataRoom
-    ? dataRoom.filter(r => r.id === item?.room_id)
-    : [];
+  const roomDetail = dataRoom ? dataRoom.filter(r => r.id === id) : [];
 
   const {
-    _id: idRoom,
+    id: idRoom,
     images: imagesRoom,
     address: addressRoom,
     amenities: amenitiesRoom,
@@ -89,17 +90,20 @@ const RoomDetailScreen = ({handleToggleLike}) => {
     updated_at,
   } = roomDetail?.[0] || {};
 
-  console.log(roomDetail, 'sss');
+  const [isLoading, setIsLoading] = useState(false);
+
   const [amenities, setAmenities] = useState(amenitiesRoom || []);
   const [isOpenImage, setIsOpenImage] = useState(false);
   const [avatar, setAvatar] = useState(imagesRoom || []);
+  console.log(roomDetail, 'roomDetail');
+
   const [selectedImage, setSelectedImage] = useState('');
   const toggleFavourite = useToggleFavourite();
 
   const [isOpenModalLogin, setIsOpenModalLogin] = useState(false);
 
   const [isHeart, setIsHeart] = useState(false);
-
+  const updateRoom = useUpdateRoom();
   const {
     control,
     handleSubmit,
@@ -113,10 +117,66 @@ const RoomDetailScreen = ({handleToggleLike}) => {
       setAvatar(imagesRoom);
     }
   }, [imagesRoom]);
-
+  useEffect(() => {
+    setValue('avatarRoom', avatar);
+  }, [avatar]);
+  const handleSelectImage = async () => {
+    try {
+      const uri = await SelectImage();
+      if (uri) {
+        setAvatar(prev => [...prev, uri]);
+      }
+    } catch (error) {
+      console.log('Error selecting image', error);
+    }
+  };
   const handleToggle = () => {
     toggleFavourite.mutate({dataRoom, user_id: USER_ID});
   };
+
+  const onSubmit = async formData => {
+    try {
+      setIsLoading(true); // ⚡ bắt đầu loading
+
+      const uri = formData?.avatarRoom[0];
+      console.log(uri, 'uri');
+
+      // Upload ảnh lên Firebase
+      const uploadedUrls = await uploadImageToFirebase(uri, 0);
+      const newUploadedUrls = Array.isArray(uploadedUrls)
+        ? uploadedUrls
+        : [uploadedUrls];
+
+      // Gọi mutate cập nhật phòng
+      updateRoom.mutate(
+        {
+          roomId: idRoom,
+          data: {
+            ...formData,
+            price: Number(formData.price),
+            amenities: amenities,
+            images: newUploadedUrls,
+          },
+        },
+        {
+          onSuccess: () => {
+            Alert.alert('Thành công', 'Cập nhật phòng thành công!');
+            navigation.navigate(NAVIGATION_NAME.MANAGER_ROOM_SCREEN);
+          },
+          onError: e => {
+            console.log('Cập nhật phòng thất bại', e);
+          },
+          onSettled: () => {
+            setIsLoading(false); // ⚡ kết thúc loading
+          },
+        },
+      );
+    } catch (err) {
+      console.log('🔥 Lỗi trong onSubmit:', err);
+      setIsLoading(false); // ⚡ kết thúc loading nếu có lỗi
+    }
+  };
+
   useLayoutEffect(() => {
     navigation.setOptions({
       titleRoom: `${type === TYPE.EDIT ? 'Thêm phòng' : 'Chi tiết phòng'}`,
@@ -127,7 +187,16 @@ const RoomDetailScreen = ({handleToggleLike}) => {
       },
       headerRight: () => (
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
-          {role === ROLE.USER && (
+          {role === ROLE.OWNER ? (
+            <TouchableOpacity onPress={handleSubmit(onSubmit)}>
+              <IconStyles
+                name={'check'}
+                iconSet="AntDesign"
+                color={COLOR.WHITE}
+                size={24}
+              />
+            </TouchableOpacity>
+          ) : (
             <TouchableOpacity onPress={handleToggle}>
               <IconStyles
                 name={'heart'}
@@ -152,8 +221,6 @@ const RoomDetailScreen = ({handleToggleLike}) => {
     if (userPhone) Linking.openURL(`tel:${userPhone}`);
   };
   const onPressSMS = () => {
-    console.log('ádadsasdsa');
-
     navigation.navigate(NAVIGATION_NAME.MESSENGER_STACK, {
       screen: NAVIGATION_NAME.MESSENGER_DETAIL_SCREEN,
       params: {dataUser: dataUser},
@@ -168,7 +235,7 @@ const RoomDetailScreen = ({handleToggleLike}) => {
             userImage={userImage}
             userName={userName}
             userAddress={userAddress}
-            createdAt={item?.createdAt}
+            createdAt={updated_at}
           />
         )}
         {/* Image section - unchanged */}
@@ -177,7 +244,7 @@ const RoomDetailScreen = ({handleToggleLike}) => {
           isEdit={isEdit}
           isLook={isLook}
           onPressBanner={() => handleBannerPress(avatar)}
-          // onPressImage={handleSelectImage}
+          onPressImage={handleSelectImage}
         />
         <Space height={10} />
         {/* Title and Rating section */}
@@ -287,8 +354,32 @@ const RoomDetailScreen = ({handleToggleLike}) => {
           </View>
         </TouchableWithoutFeedback>
       </RNModal>
+      {isLoading && (
+        <View style={styles.overlay}>
+          <ActivityIndicator size="large" color="#fff" />
+          <Text style={styles.text}>Đang xử lý...</Text>
+        </View>
+      )}
     </View>
   );
 };
 
 export default RoomDetailScreen;
+const styles = StyleSheet.create({
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)', // lớp mờ
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 9999,
+  },
+  text: {
+    marginTop: 10,
+    color: '#fff',
+    fontSize: 16,
+  },
+});

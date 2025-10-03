@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import MapLibreGL from '@maplibre/maplibre-react-native';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import {useDispatch} from 'react-redux';
 import Geolocation from 'react-native-geolocation-service';
 import {debounce} from 'lodash';
@@ -34,6 +34,7 @@ import {mapService} from '../../service/mapService';
 // Store
 import userStore from '../../store/userStore';
 import {fetchOwners} from '../../redux/ownersSlide';
+import {getProvince} from '../../utill/getProvince';
 
 // Constants
 MapLibreGL.setAccessToken(null);
@@ -55,10 +56,14 @@ const GEOLOCATION_OPTIONS = {
 const {width, height} = Dimensions.get('window');
 
 const MapLibreScreen = () => {
+  const {isSelectAddAddress} = useRoute().params ?? {};
+  console.log(isSelectAddAddress, '✅✅✅✅✅');
+
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const {width, height} = useWindowDimensions();
-  const {currentLocation, setCurrentLocation} = userStore();
+  const {currentLocation, setCurrentLocation, addAddress, setAddAddress} =
+    userStore();
 
   // Refs
   const mapRef = useRef(null);
@@ -158,6 +163,10 @@ const MapLibreScreen = () => {
       });
 
       const result = data.results[0];
+      // console.log(JSON.stringify(result, null, 2), 'result');
+      const province = getProvince(result.address_components);
+      // console.log(province, '🗺️🗺️🗺️🗺️🗺️🗺️🗺️');
+
       if (result) {
         const pressedLocation = {
           place_id: result.place_id,
@@ -165,6 +174,7 @@ const MapLibreScreen = () => {
           name: result.name,
           lat: result.geometry.location?.lat,
           lon: result.geometry.location?.lng,
+          province: province,
         };
 
         setLocationState(pressedLocation);
@@ -213,7 +223,12 @@ const MapLibreScreen = () => {
   );
 
   const handleSaveLocation = useCallback(async () => {
-    setCurrentLocation(locationState);
+    if (isSelectAddAddress) {
+      setAddAddress(locationState);
+      navigation.goBack();
+    } else {
+      setCurrentLocation(locationState);
+    }
   }, [locationState, setCurrentLocation]);
 
   const handleCloseModal = useCallback(() => {
@@ -255,7 +270,7 @@ const MapLibreScreen = () => {
       <TouchableOpacity onPress={handleSaveLocation}>
         <RowComponent
           flexDirection="row"
-          alignItems="space-between"
+          alignItems="center"
           justify="space-between"
           styles={styles.locationRow}>
           <ButtonIcon
@@ -266,7 +281,7 @@ const MapLibreScreen = () => {
             disabled
           />
           <Text style={styles.addressText}>{getDisplayAddress()}</Text>
-          <ButtonIcon name="save" color={COLOR.PRIMARY} />
+          <IconStyles name="save" color={COLOR.PRIMARY} size={22} />
         </RowComponent>
       </TouchableOpacity>
 

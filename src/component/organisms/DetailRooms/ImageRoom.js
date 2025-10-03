@@ -6,21 +6,28 @@ import IconStyles from '../../../constants/IconStyle';
 import {COLOR} from '../../../constants/colorConstants';
 
 const ImageRoom = ({avatar, isEdit, isLook, onPressBanner, onPressImage}) => {
+  // console.log('==============isEdit======avatar================');
+  // console.log(avatar, isEdit, isLook);
+  // console.log('====================================');
+
+  const newAvatar = !Array.isArray(avatar) ? [avatar] : avatar;
   return (
     <RowComponent justify="center" styles={{width: '100%', height: 200}}>
       {isLook && avatar?.length > 0 && (
         <TouchableOpacity onPress={onPressBanner}>
           <Image
             style={{width: WIDTH, height: 200}}
-            source={{uri: avatar[0]}}
+            source={{uri: newAvatar[0]}}
           />
         </TouchableOpacity>
       )}
       {isEdit && avatar?.length > 0 ? (
-        <TouchableOpacity>
+        <TouchableOpacity
+        onPress={onPressImage}
+        >
           <Image
             style={{width: WIDTH, height: 200}}
-            source={{uri: avatar[0]}}
+            source={{uri: newAvatar[0]}}
           />
         </TouchableOpacity>
       ) : (

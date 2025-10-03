@@ -144,7 +144,7 @@ const HomeScreen = () => {
   const handleSelectImg = useCallback(
     item => {
       navigation.navigate(NAVIGATION_NAME.ROOM_DETAIL_SCREEN, {
-        item,
+        id: item?.room_id,
         type: TYPE.LOOK,
         // role: dataUser.role || ROLE.USER,
       });
@@ -302,7 +302,7 @@ const HomeScreen = () => {
         <Space height={10} />
 
         {/* Current Location Button */}
-        {currentLocationName && (
+        {/* {currentLocationName && ( */}
           <TouchableOpacity
             onPress={handleLocationPress}
             style={styles.locationButton}
@@ -315,7 +315,7 @@ const HomeScreen = () => {
               size={20}
             />
           </TouchableOpacity>
-        )}
+        {/* )} */}
 
         {/* Masonry Layout */}
         {filteredData.length > 0 ? (

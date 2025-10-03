@@ -9,6 +9,8 @@ import {
   Modal as RNModal,
   View,
   TouchableWithoutFeedback,
+  ActivityIndicator,
+  Text,
 } from 'react-native';
 import React, {useCallback, useEffect, useLayoutEffect, useState} from 'react';
 import {useNavigation, useRoute} from '@react-navigation/native';
@@ -27,7 +29,7 @@ import Modal from '../component/molecules/Modal';
 import {ROLE, TYPE} from '../constants/assetsConstants';
 import {USER_ID} from '../constants/envConstants';
 import {useUser} from '../hooks/useGetInforUser';
-import {useRooms} from '../hooks/useRooms';
+import {useCreateRoom, useRooms} from '../hooks/useRooms';
 import {useToggleFavourite} from '../hooks/useFetchFavouriteData';
 import {Controller, useForm} from 'react-hook-form';
 import Banner from '../component/atoms/Banner';
@@ -39,10 +41,12 @@ import Input from '../component/atoms/Input';
 import PriceRoom from '../component/organisms/DetailRooms/PriceRoom';
 import {NAVIGATION_NAME} from '../constants/navigtionConstants';
 import IconStyles from '../constants/IconStyle';
+import userStore from '../store/userStore';
+import {uploadImageToFirebase} from '../utill/uploadImageToFirebase';
 
 const {width, height} = Dimensions.get('window');
-const AddRoomScreen = ({handleToggleLike}) => {
-  console.log('RoomDetailScreen renders');
+const AddRoomScreen = ({}) => {
+  console.log('AddDetailScreen renders');
   const route = useRoute();
   const {item, role, type} = route.params;
   const isLook = type === TYPE.LOOK;
@@ -50,15 +54,17 @@ const AddRoomScreen = ({handleToggleLike}) => {
   const isOwner = role === ROLE.OWNER;
 
   const navigation = useNavigation();
-  const {data: dataUser, isLoading, error} = useUser(USER_ID);
+  const {data: dataUser, error} = useUser(USER_ID);
   const {
+    id: userID,
     avatar: userImage,
     name: userName,
     address: userAddress,
   } = dataUser || {};
+
   const {data: dataRoom} = useRooms();
   const roomDetail = dataRoom?.find(room => room._id === item?.room_id) || {};
-  console.log('roomDetail', item?.room_id);
+  // console.log('roomDetail', item?.room_id);
   const {
     _id: idRoom,
     images: imagesRoom,
@@ -81,6 +87,7 @@ const AddRoomScreen = ({handleToggleLike}) => {
     due_date,
     updated_at,
   } = roomDetail || {};
+  const [isLoading, setIsLoading] = useState(false);
 
   const [isOpenImage, setIsOpenImage] = useState(false);
   const [avatar, setAvatar] = useState([]);
@@ -92,7 +99,6 @@ const AddRoomScreen = ({handleToggleLike}) => {
   // Existing states
 
   // Edit states for form data
-  const [editedAddress, setEditedAddress] = useState(addressRoom || '');
   const [amenities, setAmenities] = useState(amenitiesRoom || []);
 
   const [editedDescription, setEditedDescription] = useState(
@@ -100,47 +106,99 @@ const AddRoomScreen = ({handleToggleLike}) => {
   );
   const [newAmenity, setNewAmenity] = useState('');
   const [isHeart, setIsHeart] = useState(false);
-
+  const createRoom = useCreateRoom();
+  const addAddress = userStore(state => state.addAddress);
+  const currentLocation = userStore(state => state.currentLocation);
+  console.log(addAddress, 'addAddress');
+  console.log(addressRoom, 'addressRoom');
+  const valueAddressRoom = addressRoom || addAddress?.display_name || '';
   const {
     control,
     handleSubmit,
     formState: {errors},
     getValues,
     setValue,
-  } = useForm();
+  } = useForm({
+    defaultValues: {
+      addressRoom: addressRoom || addAddress?.display_name,
+    },
+  });
 
-  useEffect(() => {
-    if (imagesRoom && imagesRoom.length > 0) {
-      setAvatar(imagesRoom);
-    }
-  }, [imagesRoom]);
+  // useEffect(() => {
+  //   if (imagesRoom && imagesRoom.length > 0) {
+  //     setAvatar(imagesRoom);
+  //   }
+  // }, [imagesRoom]);
   // Chọn ảnh từ thư viện
   const handleSelectImage = async () => {
     try {
       const uri = await SelectImage();
       if (uri) {
-        setAvatar(uri);
+        setAvatar(prev => [...prev, uri]);
       }
     } catch (error) {
-      // console.log('Error selecting image', error);
+      console.log('Error selecting image', error);
     }
   };
-  // Save functions
-  const saveAddress = async newAddress => {
-    console.log('newAddress', newAddress);
-  };
-
-  const saveDescription = async newDescription => {
-    console.log('newDescription', newDescription);
-  };
-
-  const saveAmenities = async newAmenities => {
-    console.log('newAmenities', newAmenities);
-  };
-
+  // console.log(avatar, '😁😁😁😁😁😁');
+  useEffect(() => {
+    if (addAddress?.display_name) {
+      setValue('addressRoom', addAddress.display_name);
+    }
+  }, [addAddress]);
+  useEffect(() => {
+    setValue('avatarRoom', avatar);
+  }, [avatar]);
   const handleToggle = () => {
     toggleFavourite.mutate({dataRoom, user_id: USER_ID});
   };
+  const onSubmit = async formData => {
+    try {
+      setIsLoading(true);
+      const uri = formData.avatarRoom[0];
+      const uploadedUrls = await uploadImageToFirebase(uri, 0);
+      const newUploadedUrls = !Array.isArray(uploadedUrls)
+        ? [uploadedUrls]
+        : uploadedUrls;
+      // console.log(formData.avatarRoom,"formData.avatarRoom");
+
+      const payload = {
+        owner_id: userID,
+        title: formData?.title,
+        description: formData?.description,
+        address: formData?.addressRoom,
+        region: addAddress?.province,
+        latitude: addAddress?.lat ? Number(addAddress?.lat) : undefined,
+        longitude: addAddress?.lon ? Number(addAddress?.lon) : undefined,
+        price: Number(formData.price),
+        amenities,
+        images: newUploadedUrls,
+      };
+      createRoom.mutate(payload, {
+        onSuccess: () => {
+          Alert.alert('Thành công', 'Tạo phòng thành công!', [
+            {
+              text: 'OK',
+              onPress: () => {
+                navigation.navigate(NAVIGATION_NAME.MANAGER_ROOM_SCREEN);
+              },
+            },
+          ]);
+        },
+        onError: e => {
+          Alert.alert('Thất bại', 'Tạo phòng thất bại');
+          console.log('Tạo phòng thất bại', e);
+        },
+        onSettled: () => {
+          setIsLoading(false);
+        },
+      });
+    } catch (err) {
+      setIsLoading(false);
+      console.log('🔥 Lỗi trong onSubmit:', err);
+    }
+  };
+
   useLayoutEffect(() => {
     navigation.setOptions({
       titleRoom: `${type === TYPE.EDIT ? 'Thêm phòng' : 'Chi tiết phòng'}`,
@@ -151,7 +209,16 @@ const AddRoomScreen = ({handleToggleLike}) => {
       },
       headerRight: () => (
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
-          {role === ROLE.USER && (
+          {role === ROLE.OWNER ? (
+            <TouchableOpacity onPress={handleSubmit(onSubmit)}>
+              <IconStyles
+                name={'check'}
+                iconSet="AntDesign"
+                color={COLOR.WHITE}
+                size={24}
+              />
+            </TouchableOpacity>
+          ) : (
             <TouchableOpacity onPress={handleToggle}>
               <IconStyles
                 name={'heart'}
@@ -172,9 +239,11 @@ const AddRoomScreen = ({handleToggleLike}) => {
     setSelectedImage(item); // hoặc item.images[0]
     setIsOpenImage(true);
   }, []);
-  console.log('====================================');
-  console.log(imagesRoom, avatar);
-  console.log('====================================');
+  const onPressOpenMap = () => {
+    navigation.navigate(NAVIGATION_NAME.MAP_SCREEN, {
+      isSelectAddAddress: true,
+    });
+  };
   return (
     <View style={{flex: 1}}>
       <ScrollView>
@@ -192,7 +261,7 @@ const AddRoomScreen = ({handleToggleLike}) => {
           avatar={avatar}
           isEdit={isEdit}
           isLook={isLook}
-          onPressBanner={() => handleBannerPress(avatar)}
+          onPressBanner={handleSelectImage}
           onPressImage={handleSelectImage}
         />
         <Space height={10} />
@@ -219,19 +288,14 @@ const AddRoomScreen = ({handleToggleLike}) => {
 
           {/* Address Section */}
           <AddressRoom
-            titleRoom={titleRoom}
             type={type}
-            addressRoom={addressRoom}
+            addressRoom={valueAddressRoom}
             control={control}
             errors={errors}
             isEdit={true}
             isLook={isLook}
             isOwner={isOwner}
-            saveAddressCallback={newAddress => {
-              // Xử lý lưu địa chỉ
-              console.log('Địa chỉ mới:', newAddress);
-              saveAddress(newAddress);
-            }}
+            onPressOpenMap={onPressOpenMap}
           />
         </RowComponent>
 
@@ -298,8 +362,32 @@ const AddRoomScreen = ({handleToggleLike}) => {
           </View>
         </TouchableWithoutFeedback>
       </RNModal>
+      {isLoading && (
+        <View style={styles.overlay}>
+          <ActivityIndicator size="large" color="#fff" />
+          <Text style={styles.text}>Đang xử lý...</Text>
+        </View>
+      )}
     </View>
   );
 };
 
 export default AddRoomScreen;
+const styles = StyleSheet.create({
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)', // lớp mờ
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 9999,
+  },
+  text: {
+    marginTop: 10,
+    color: '#fff',
+    fontSize: 16,
+  },
+});

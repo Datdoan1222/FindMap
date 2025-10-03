@@ -7,7 +7,7 @@ import {FONT} from '../../../constants/fontConstants';
 import Input from '../../atoms/Input';
 
 const TitleRoom = ({titleRoom, isLook, isEdit, control, errors}) => {
-  console.log(titleRoom, 'sss');
+  // console.log(titleRoom, 'sss');
 
   return (
     <RowComponent>

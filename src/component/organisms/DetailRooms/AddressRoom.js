@@ -8,13 +8,13 @@ import TextComponent from '../../atoms/TextComponent';
 import IconStyles from '../../../constants/IconStyle';
 
 const AddressRoom = ({
-  titleRoom,
   addressRoom,
   control,
   errors,
   isLook,
   isEdit,
   isOwner,
+  onPressOpenMap,
 }) => {
   return (
     <RowComponent
@@ -24,29 +24,46 @@ const AddressRoom = ({
       <Image source={require('../../../assets/images/location.png')} />
 
       <View style={{flex: 1, marginLeft: 10}}>
-        {titleRoom && isLook ? (
+        {addressRoom && isLook ? (
           <TextComponent
             size={15}
             text={addressRoom || 'Chưa cập nhật địa chỉ'}
             styles={{fontStyle: 'italic', flex: 1}}
           />
         ) : (
-          <Controller
-            name="address"
-            control={control}
-            defaultValue={addressRoom}
-            render={({field: {onChange, onBlur, value}}) => (
-              <Input
-                style={{width: '100%'}}
-                label="Nhập địa chỉ phòng trọ"
-                placeholder="Nhập địa chỉ phòng trọ"
-                onChangeValue={onChange}
-                onBlur={onBlur}
-                value={value}
-                error={errors?.address?.message}
-              />
-            )}
-          />
+          <TouchableOpacity onPress={onPressOpenMap}>
+            <Controller
+              name="addressRoom"
+              control={control}
+              defaultValue={addressRoom}
+              render={({field: {onChange, onBlur, value}}) => (
+                <View style={{width: '100%'}}>
+                  <TextInput
+                    style={{
+                      borderWidth: 1,
+                      borderColor: errors?.addressRoom ? COLOR.DANGER : COLOR.GRAY4,
+                      borderRadius: 6,
+                      padding: 10,
+                      width: '100%',
+                      color: COLOR.BLACK1,
+                      fontSize: 15,
+                    }}
+                    placeholder="Nhập địa chỉ phòng trọ"
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    value={value}
+                    editable={false} // thay cho disabled
+                    multiline={true} // cho phép nhiều dòng
+                  />
+                  {errors?.addressRoom?.message && (
+                    <Text style={{color: COLOR.DANGER, marginTop: 4}}>
+                      {errors.addressRoom.message}
+                    </Text>
+                  )}
+                </View>
+              )}
+            />
+          </TouchableOpacity>
         )}
       </View>
     </RowComponent>

@@ -62,17 +62,24 @@ const PriceRoom = ({
             name="price"
             control={control}
             defaultValue={price}
-            render={({field: {onChange, onBlur, value}}) => (
-              <Input
-                style={{width: '100%'}}
-                label={'Nhập tiền thuê trên tháng'}
-                placeholder={'Nhập tiền'}
-                onChangeValue={onChange}
-                onBlur={onBlur}
-                value={value}
-                error={errors.price?.message}
-              />
-            )}
+            render={({field: {onChange, onBlur, value}}) => {
+              const handleChange = text => {
+                const numeric = text.replace(/\./g, '');
+                const numberValue = Number(numeric);
+                onChange(numberValue);
+              };
+              return (
+                <Input
+                  style={{width: '100%'}}
+                  label={'Nhập tiền thuê trên tháng'}
+                  placeholder={'Nhập tiền'}
+                  onChangeValue={handleChange}
+                  onBlur={onBlur}
+                  value={toPrice(value) ?? ''}
+                  error={errors.price?.message}
+                />
+              );
+            }}
           />
           <TextComponent size={20} text={` đ`} />
         </RowComponent>

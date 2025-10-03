@@ -30,6 +30,22 @@ const userStore = create(set => ({
         ...newLocation,
       },
     })),
+  addAddress: {
+    place_id: '',
+    display_name: '',
+    name: '',
+    lat: '',
+    lon: '',
+    parentNew: '',
+    province: '',
+  },
+  setAddAddress: newLocation =>
+    set(state => ({
+      addAddress: {
+        ...state.addAddress,
+        ...newLocation,
+      },
+    })),
 }));
 
 export default userStore;

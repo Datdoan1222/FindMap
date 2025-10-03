@@ -14,6 +14,7 @@ import {COLOR} from '../../constants/colorConstants';
 import TextComponent from '../atoms/TextComponent';
 import RowComponent from '../atoms/RowComponent';
 import Space from '../atoms/Space';
+import {toPrice} from '../../utill/toPrice';
 
 const ItemCard = ({
   iconDelete = ICON_TYPE.DELETE,
@@ -143,10 +144,13 @@ const ItemCard = ({
                   styles.defaultImage,
                   {width: imageSize, height: imageSize},
                 ]}>
-                <IconStyles
-                  name={ICON_TYPE.HOME}
-                  color={COLOR.GRAY2}
-                  size={imageSize * 0.375} // Tỷ lệ icon theo kích thước ảnh
+                <Image
+                  source={require('../../assets/images/blank_banner.png')}
+                  style={[
+                    styles.itemImage,
+                    {width: imageSize, height: imageSize},
+                  ]}
+                  resizeMode="cover"
                 />
               </View>
             )}
@@ -176,10 +180,11 @@ const ItemCard = ({
             {item.price && (
               <View style={styles.priceRow}>
                 <TextComponent
-                  text={formatPrice(item.price)}
+                  text={`${toPrice(item.price)} đ`}
                   font="Roboto-Bold"
-                  color={COLOR.PRIMARY}
-                  size={14}
+                  color={COLOR.DANGER}
+                  size={16}
+                  styles={{fontWeight: 'bold'}}
                 />
               </View>
             )}

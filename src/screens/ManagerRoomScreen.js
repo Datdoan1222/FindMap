@@ -1,4 +1,5 @@
 import {
+  Alert,
   Dimensions,
   FlatList,
   StyleSheet,
@@ -21,13 +22,15 @@ import {GestureHandlerRootView, Swipeable} from 'react-native-gesture-handler';
 import ItemCard from '../component/molecules/ItemCard';
 import {NAVIGATION_NAME} from '../constants/navigtionConstants';
 import {ROLE, TYPE} from '../constants/assetsConstants';
-import {useRooms} from '../hooks/useRooms';
+import {useDeleteRoom, useRooms} from '../hooks/useRooms';
 import {USER_ID} from '../constants/envConstants';
+import Space from '../component/atoms/Space';
 export const {width, height} = Dimensions.get('window');
 
 const ManagerRoomScreen = () => {
   const navigation = useNavigation();
   const handleSearch = () => {};
+  const deleteRoom = useDeleteRoom();
   const [dataUser, setDataUser] = useState(usersAPI[0]);
   // const [dataRoom, setDataRoom] = useState(roomsAPI);
   const {data: dataRooms} = useRooms();
@@ -38,7 +41,17 @@ const ManagerRoomScreen = () => {
   const swipeableRefs = useRef({});
   const nameUser = dataUser?.name;
   const addressUser = dataUser?.address;
-  const handleDelete = () => {};
+  const handleDelete = roomId => {
+    deleteRoom.mutate(roomId, {
+      onSuccess: () => {
+        Alert.alert('Thành công', 'Xóa phòng thành công!');
+      },
+      onError: e => {
+        Alert.alert('Thất bại', 'Không thể xóa phòng!');
+        console.log('❌ Lỗi:', e);
+      },
+    });
+  };
   // Close all open swipeables when needed
   const closeAllSwipeables = useCallback(() => {
     Object.values(swipeableRefs.current).forEach(ref => {
@@ -74,34 +87,50 @@ const ManagerRoomScreen = () => {
           alignItems="flex-start"
           styles={styles.body}>
           <TextComponent text={`Phòng trọ ${nameUser}`} size={25} />
+
           <TextComponent
             text={`${addressUser}`}
             size={15}
             styles={{fontStyle: 'italic'}}
             color={COLOR.BLACK2}
           />
-          <RowComponent flexDirection="column" styles={{width: '100%'}}>
+          <Space height={10} />
+          <RowComponent
+            flexDirection="row"
+            justify="flex-end"
+            styles={{width: '100%'}}>
+            <TextComponent
+              text={`Số phòng quản lý ${dataRoom.length}`}
+              size={18}
+              color={COLOR.GREY_300}
+              styles={{fontStyle: 'italic'}}
+            />
+          </RowComponent>
+          <RowComponent
+            flexDirection="column"
+            styles={{width: '100%', height: '94%'}}>
             <FlatList
               data={dataRoom}
               renderItem={({item}) => (
                 <ItemCard
                   item={item}
                   swipeableRefs={swipeableRefs}
-                  onPress={itm =>
+                  onPress={item =>
                     navigation.navigate(NAVIGATION_NAME.ROOM_DETAIL_SCREEN, {
-                      item: itm,
+                      id: item.id,
                       role: ROLE.OWNER,
+                      type: TYPE.EDIT,
                     })
                   }
                   onDelete={handleDelete}
                   width={width - 40} // Chiều rộng 200px
                   height={120} // Chiều cao 120px
-                  imageSize={60} // Ảnh 60x60px
+                  imageSize={80} // Ảnh 60x60px
                 />
               )}
               keyExtractor={item => item.id}
               horizontal={false}
-              scrollEnabled={false}
+              // scrollEnabled={false}
               contentContainerStyle={styles.flatListContent}
               showsVerticalScrollIndicator={false}
               onScroll={handleScroll}
@@ -136,7 +165,9 @@ export default ManagerRoomScreen;
 
 const styles = StyleSheet.create({
   gestureContainer: {flex: 1, backgroundColor: COLOR.WHITE},
-  container: {},
+  container: {
+    marginBottom: 300,
+  },
   body: {
     marginHorizontal: 10,
   },
