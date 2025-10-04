@@ -44,7 +44,7 @@ import AddressRoom from '../../../component/organisms/DetailRooms/AddressRoom';
 import AmenitiesRoom from '../../../component/organisms/DetailRooms/AmenitiesRoom';
 import DescriptionRoom from '../../../component/organisms/DetailRooms/DescriptionRoom';
 import PriceRoom from '../../../component/organisms/DetailRooms/PriceRoom';
-import {uploadImageToFirebase} from '../../../utill/uploadImageToFirebase';
+import {deleteImageFromFirebase, uploadImageToFirebase} from '../../../utill/uploadImageToFirebase';
 
 const {width, height} = Dimensions.get('window');
 const RoomDetailScreen = ({handleToggleLike}) => {
@@ -163,8 +163,10 @@ const RoomDetailScreen = ({handleToggleLike}) => {
             Alert.alert('Thành công', 'Cập nhật phòng thành công!');
             navigation.navigate(NAVIGATION_NAME.MANAGER_ROOM_SCREEN);
           },
-          onError: e => {
+          onError: async e => {
             console.log('Cập nhật phòng thất bại', e);
+            Alert.alert('Thất bại', 'Cập nhật phòng thất bại');
+            await deleteImageFromFirebase(newUploadedUrls[0]);
           },
           onSettled: () => {
             setIsLoading(false); // ⚡ kết thúc loading

@@ -14,3 +14,7 @@ export const uploadImageToFirebase = async (uri, index) => {
 
   return downloadURL;
 };
+export const deleteImageFromFirebase = async url => {
+  const reference = storage().refFromURL(url);
+  await reference.delete();
+};

@@ -42,7 +42,10 @@ import PriceRoom from '../component/organisms/DetailRooms/PriceRoom';
 import {NAVIGATION_NAME} from '../constants/navigtionConstants';
 import IconStyles from '../constants/IconStyle';
 import userStore from '../store/userStore';
-import {uploadImageToFirebase} from '../utill/uploadImageToFirebase';
+import {
+  deleteImageFromFirebase,
+  uploadImageToFirebase,
+} from '../utill/uploadImageToFirebase';
 
 const {width, height} = Dimensions.get('window');
 const AddRoomScreen = ({}) => {
@@ -185,9 +188,10 @@ const AddRoomScreen = ({}) => {
             },
           ]);
         },
-        onError: e => {
+        onError: async e => {
           Alert.alert('Thất bại', 'Tạo phòng thất bại');
           console.log('Tạo phòng thất bại', e);
+          await deleteImageFromFirebase(newUploadedUrls[0]);
         },
         onSettled: () => {
           setIsLoading(false);
