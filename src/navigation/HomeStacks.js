@@ -20,6 +20,7 @@ import CurrentAddressScreen from '../screens/Home/CurrentAddressScreen';
 import ManagerRoomScreen from '../screens/ManagerRoomScreen';
 import RoomDetailScreen from '../screens/Home/post/RoomDetailScreen';
 import AddRoomScreen from '../screens/AddRoomScreen';
+import PostRoomStack from '../screens/PostRoom/PostRoomStack';
 
 const Stack = createNativeStackNavigator();
 
@@ -69,13 +70,22 @@ const HomeStacks = () => {
           title: 'Phòng của tôi',
         }}
       />
-      <Stack.Screen
+      {/* <Stack.Screen
         name={NAVIGATION_NAME.ROOM_SHARING_STACK}
         component={RoomSharingStack}
         options={{
           // headerShown: false,
           headerTitleAlign: 'center',
           title: 'Ghép phòng',
+        }}
+      /> */}
+      <Stack.Screen
+        name={NAVIGATION_NAME.POST_ROOM_STACK}
+        component={PostRoomStack}
+        options={{
+          headerShown: false,
+          headerTitleAlign: 'center',
+          title: 'Đăng bài',
         }}
       />
       <Stack.Screen

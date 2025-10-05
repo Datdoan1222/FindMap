@@ -7,6 +7,7 @@ const userStore = create(set => ({
     email: '',
     phone: '',
     role: '', // user: người thuê, owner: chủ trọ
+    avatar: '',
   },
   setInforUser: newInfor =>
     set(state => ({

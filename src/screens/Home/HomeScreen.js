@@ -36,12 +36,13 @@ import {ROLE, TYPE} from '../../constants/assetsConstants';
 import {ro} from 'date-fns/locale';
 import {useUser} from '../../hooks/useGetInforUser';
 import {USER_ID} from '../../constants/envConstants';
+import {WIDTH} from '../../constants/distance';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const {getCurrentAddress} = useCurrentAddress();
-  const {currentLocation} = userStore();
+  const {currentLocation, setInforUser} = userStore();
   const [refreshing, setRefreshing] = useState(false);
 
   const {posts, error, loading} = useSelector(state => state.posts);
@@ -76,10 +77,10 @@ const HomeScreen = () => {
     },
     {
       id: 'room_sharing',
-      title: 'Ghép phòng',
-      image: require('../../assets/images/categories_add_person.png'),
-      navigation: NAVIGATION_NAME.ROOM_SHARING_STACK,
-      params: () => ({screen: NAVIGATION_NAME.ROOM_SHARING_SCREEN}),
+      title: 'Đăng bài',
+      image: require('../../assets/images/categories_add_post.png'),
+      navigation: NAVIGATION_NAME.POST_ROOM_STACK,
+      params: () => ({screen: NAVIGATION_NAME.POST_ROOM_SCREEN}),
     },
   ];
   // Memoized filtered data based on current location
@@ -117,6 +118,17 @@ const HomeScreen = () => {
       dispatch(fetchPosts());
     }, [dispatch]),
   );
+  useEffect(() => {
+    setInforUser({
+      id: dataUser?.id,
+      name: dataUser?.name,
+      email: dataUser?.email,
+      phone: dataUser?.phone,
+      role: dataUser?.role, // user: người thuê, owner: chủ trọ
+      avatar: dataUser?.avatar,
+    });
+  }, [dataUser]);
+  // console.log('usser😁😁😁😁', dataUser);
 
   // Pull to refresh handler
   const onRefresh = useCallback(async () => {
@@ -303,18 +315,18 @@ const HomeScreen = () => {
 
         {/* Current Location Button */}
         {/* {currentLocationName && ( */}
-          <TouchableOpacity
-            onPress={handleLocationPress}
-            style={styles.locationButton}
-            activeOpacity={0.7}>
-            <Text style={styles.locationText}>{currentLocationName}</Text>
-            <IconStyles
-              iconSet="MaterialIcons"
-              name={ICON_TYPE.ICON_LOCATION}
-              color={COLOR.PRIMARY}
-              size={20}
-            />
-          </TouchableOpacity>
+        <TouchableOpacity
+          onPress={handleLocationPress}
+          style={styles.locationButton}
+          activeOpacity={0.7}>
+          <Text style={styles.locationText}>{currentLocationName}</Text>
+          <IconStyles
+            iconSet="MaterialIcons"
+            name={ICON_TYPE.ICON_LOCATION}
+            color={COLOR.PRIMARY}
+            size={20}
+          />
+        </TouchableOpacity>
         {/* )} */}
 
         {/* Masonry Layout */}
@@ -376,7 +388,6 @@ const styles = StyleSheet.create({
   itemCategory: {
     flex: 1,
     height: 70,
-    padding: 5,
     justifyContent: 'space-between',
     alignItems: 'center',
     marginHorizontal: 5,

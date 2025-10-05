@@ -26,6 +26,7 @@ const ItemCard = ({
   height = 'auto', // Thêm prop height với giá trị mặc định
   imageSize = 80, // Thêm prop để tùy biến kích thước ảnh
   swipeEnabled = true,
+  styleDesgin,
 }) => {
   // --- Right Actions (Xóa) ---
   const renderRightActions = (progress, dragX) => {
@@ -123,7 +124,7 @@ const ItemCard = ({
         });
       }}>
       <TouchableOpacity
-        style={containerStyle}
+        style={[containerStyle, styleDesgin ?? {styleDesgin}]}
         onPress={() => onPress?.(item)}
         activeOpacity={0.8}>
         <RowComponent styles={styles.itemContent}>
