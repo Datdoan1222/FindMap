@@ -28,14 +28,17 @@ import userStore from '../store/userStore';
 import {postsAPI} from '../utill/api/apiPost';
 import ItemCard from '../component/molecules/ItemCard';
 import {useFetchSearchData} from '../hooks/useFetchSearchData ';
+import {usePosts} from '../hooks/usePost';
+import {TYPE} from '../constants/assetsConstants';
+import {useSearch} from '../hooks/useSearch';
+import {convertToK} from '../utill/convertToK';
 
 // Use your actual rooms data
-const sampleData = [...roomsAPI, ...postsAPI];
 const price = [
-  {min: 500, max: 1000},
-  {min: 1000, max: 2000},
-  {min: 2000, max: 3000},
-  {min: 3000, max: 30000},
+  {min: 500000, max: 1000000},
+  {min: 1000000, max: 2000000},
+  {min: 2000000, max: 3000000},
+  {min: 3000000, max: 30000000},
 ];
 const SearchScreen = () => {
   const navigation = useNavigation();
@@ -49,7 +52,13 @@ const SearchScreen = () => {
   const [showOptions, setShowOptions] = useState(false);
   const [priceMin, setPriceMin] = useState(false);
   const [priceMax, setPriceMax] = useState(false);
-
+  const region = currentLocation?.parentNew || currentLocation?.parent;
+  const {data: searchResults, isLoading} = useSearch({
+    query: searchText.trim() || undefined,
+    region: region || undefined,
+    price_min: priceMin,
+    // price_max: priceMax,
+  });
   // Close all open swipeables when needed
   const closeAllSwipeables = useCallback(() => {
     Object.values(swipeableRefs.current).forEach(ref => {
@@ -61,98 +70,11 @@ const SearchScreen = () => {
   useEffect(() => {
     setSearchText('');
     setData([]);
-    // khi có api thật
-    // if (currentLocationName) {
-    // (async () => {
-    //   const apiData = await useFetchSearchData({
-    //     query: searchText,
-    //     region: currentLocationName,
-    //     price_min: priceMin || '',
-    //     price_max: priceMax || '',
-    //     name: searchText,
-    //   });
-    //   setData(apiData);
-    // })();
-    // }
-  }, [currentLocation, sampleData, priceMin, priceMax]);
+  }, [currentLocation, priceMin, priceMax]);
 
-  const filteredDataRegion = useMemo(() => {
-    const region = currentLocation?.parentNew || currentLocation?.parent;
-
-    if (!region?.trim() || !sampleData) {
-      return [];
-    }
-
-    return sampleData?.filter(item =>
-      item.region?.toLowerCase().includes(region.toLowerCase()),
-    );
-  }, [currentLocation, sampleData]);
-
-  const handleSearch = async text => {
+  const handleSearch = text => {
     setSearchText(text);
-    closeAllSwipeables();
-
-    // khi có api thật
-    // if (text.trim()) {
-    //   const apiData = await useFetchSearchData({
-    //     query: text,
-    //     region: currentLocationName || '',
-    //     price_min: priceMin || '',
-    //     price_max: priceMax || '',
-    //     name: text,
-    //   });
-    //   setData(apiData);
-    // } else {
-    //   setData([]);
-    // }
-    // Chỉ search khi có text, nếu không thì để mảng rỗng
-    if (text.trim()) {
-      const filteredData = filteredDataRegion.filter(
-        item =>
-          item.title.toLowerCase().includes(text.toLowerCase()) ||
-          item.address.toLowerCase().includes(text.toLowerCase()) ||
-          item.description.toLowerCase().includes(text.toLowerCase()) ||
-          item.region.toLowerCase().includes(text.toLowerCase()),
-      );
-
-      const uniqueData = filteredData.filter(
-        (item, index, self) =>
-          index === self.findIndex(obj => obj.id === item.id),
-      );
-
-      setData(uniqueData);
-    } else {
-      setData([]);
-    }
   };
-
-  const handleDelete = useCallback(itemId => {
-    Alert.alert(
-      'Xác nhận xóa',
-      'Bạn có chắc chắn muốn xóa phòng trọ này?',
-      [
-        {
-          text: 'Hủy',
-          style: 'cancel',
-          onPress: () => {
-            // Close the swipeable after canceling
-            if (swipeableRefs.current[itemId]) {
-              swipeableRefs.current[itemId].close();
-            }
-          },
-        },
-        {
-          text: 'Xóa',
-          onPress: () => {
-            setData(prevData => prevData.filter(item => item.id !== itemId));
-            // Clean up the ref
-            delete swipeableRefs.current[itemId];
-          },
-        },
-      ],
-      {cancelable: false},
-    );
-  }, []);
 
   // Handle FlatList scroll to close swipeables
   const handleScroll = useCallback(() => {
@@ -173,16 +95,9 @@ const SearchScreen = () => {
     setPriceMin(price?.min);
     setPriceMax(price?.max);
     setShowOptions(prev => !prev);
-    // khi có api thật
-    // const apiData = await useFetchSearchData({
-    //   query: searchText,
-    //   region: currentLocationName || '',
-    //   price_min: price.min,
-    //   price_max: price.max,
-    //   name: searchText,
-    // });
-    // setData(apiData);
   };
+  const displayedData = searchResults ?? [];
+
   return (
     <GestureHandlerRootView style={styles.gestureContainer}>
       <SafeAreaView style={styles.safeArea}>
@@ -249,8 +164,8 @@ const SearchScreen = () => {
             </TouchableOpacity>
           )}
           <RowComponent
-            flexDirection="column"
-            alignItems="flex-end"
+            flexDirection="row"
+            justify="flex-end"
             styles={{flex: 1, width: '100%'}}>
             <TouchableOpacity
               style={styles.selectPriceButton}
@@ -259,7 +174,7 @@ const SearchScreen = () => {
                 <TextComponent
                   text={
                     selectedPrice
-                      ? `${selectedPrice.min} - ${selectedPrice.max}`
+                      ? `≥ ${convertToK(selectedPrice.min)}`
                       : 'Chọn mức giá'
                   }
                   color={COLOR.GREY_400}
@@ -277,6 +192,12 @@ const SearchScreen = () => {
                 />
               </RowComponent>
             </TouchableOpacity>
+            <TouchableOpacity
+              key={`${price.min}-${price.max}`}
+              style={styles.price}
+              onPress={() => setSelectedPrice(null)}>
+              <IconStyles iconSet="Feather" name={'delete'} size={20} />
+            </TouchableOpacity>
           </RowComponent>
           {showOptions && (
             <ScrollView style={styles.optionsContainer}>
@@ -287,7 +208,7 @@ const SearchScreen = () => {
                   onPress={() => handlePricePress(price)}>
                   <RowComponent>
                     <TextComponent
-                      text={`${price.min} - ${price.max}`}
+                      text={`≥ ${convertToK(price.min)}`}
                       color={COLOR.BLACK1}
                       flex={1}
                     />
@@ -298,57 +219,64 @@ const SearchScreen = () => {
           )}
         </RowComponent>
         <View style={styles.container}>
-          <FlatList
-            ref={flatListRef}
-            data={data}
-            keyExtractor={item => item.id}
-            renderItem={({item}) => (
-              <ItemCard
-                item={item}
-                swipeableRefs={swipeableRefs}
-                onPress={itm =>
-                  navigation.navigate(NAVIGATION_NAME.ROOM_DETAIL_SCREEN, {
-                    item: itm,
-                  })
-                }
-                onDelete={handleDelete}
-              />
-            )}
-            contentContainerStyle={styles.flatListContent}
-            showsVerticalScrollIndicator={false}
-            onScroll={handleScroll}
-            scrollEventThrottle={16}
-            ListEmptyComponent={() => (
-              <View style={styles.emptyContainer}>
-                <IconStyles
-                  name={searchText.trim() ? ICON_TYPE.SEARCH : ICON_TYPE.HOME}
-                  color={COLOR.GRAY2}
-                  size={50}
-                />
-                <Space height={16} />
-                <TextComponent
-                  text={
-                    searchText.trim()
-                      ? 'Không có kết quả tìm kiếm'
-                      : 'Nhập từ khóa để tìm kiếm phòng trọ'
+          {isLoading ? (
+            <View style={styles.emptyContainer}>
+              <TextComponent text="Đang tải kết quả..." color={COLOR.GRAY4} />
+            </View>
+          ) : (
+            <FlatList
+              ref={flatListRef}
+              data={displayedData}
+              keyExtractor={item => item._id}
+              renderItem={({item}) => (
+                <ItemCard
+                  item={item}
+                  swipeEnabled={false}
+                  swipeableRefs={swipeableRefs}
+                  onPress={() =>
+                    navigation.navigate(NAVIGATION_NAME.ROOM_DETAIL_SCREEN, {
+                      id: item.room_id,
+                      type: TYPE.LOOK,
+                    })
                   }
-                  color={COLOR.GRAY4}
-                  size={16}
-                  textAlign="center"
                 />
-              </View>
-            )}
-            // Add some performance optimizations
-            removeClippedSubviews={true}
-            maxToRenderPerBatch={10}
-            windowSize={10}
-            initialNumToRender={10}
-            getItemLayout={(data, index) => ({
-              length: 110, // Approximate item height
-              offset: 110 * index,
-              index,
-            })}
-          />
+              )}
+              contentContainerStyle={styles.flatListContent}
+              showsVerticalScrollIndicator={false}
+              onScroll={handleScroll}
+              scrollEventThrottle={16}
+              ListEmptyComponent={() => (
+                <View style={styles.emptyContainer}>
+                  <IconStyles
+                    name={searchText.trim() ? ICON_TYPE.SEARCH : ICON_TYPE.HOME}
+                    color={COLOR.GRAY2}
+                    size={50}
+                  />
+                  <Space height={16} />
+                  <TextComponent
+                    text={
+                      searchText.trim()
+                        ? 'Không có kết quả tìm kiếm'
+                        : 'Nhập từ khóa để tìm kiếm phòng trọ'
+                    }
+                    color={COLOR.GRAY4}
+                    size={16}
+                    textAlign="center"
+                  />
+                </View>
+              )}
+              // Add some performance optimizations
+              removeClippedSubviews={true}
+              maxToRenderPerBatch={10}
+              windowSize={10}
+              initialNumToRender={10}
+              getItemLayout={(data, index) => ({
+                length: 110, // Approximate item height
+                offset: 110 * index,
+                index,
+              })}
+            />
+          )}
         </View>
       </SafeAreaView>
     </GestureHandlerRootView>
