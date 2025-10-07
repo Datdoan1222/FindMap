@@ -73,3 +73,24 @@ export const useDeleteUser = () =>
     const {data} = await axios.delete(`${USER_URL}/${userId}`);
     return data;
   });
+  
+/** ------------------ TOGGLE FAVOURITE ------------------ */
+export const useToggleFavourite = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    async (params: {userId: string; roomId: string}) => {
+      const {userId, roomId} = params;
+      const {data} = await axios.post(`${USER_URL}/${userId}/favourite`, {
+        room_id: roomId,
+      });
+      return data;
+    },
+    {
+      onSuccess: (_, variables) => {
+        // Cập nhật lại thông tin user để đồng bộ favourite mới nhất
+        queryClient.invalidateQueries(['user', variables.userId]);
+      },
+    },
+  );
+};

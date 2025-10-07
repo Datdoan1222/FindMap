@@ -10,7 +10,21 @@ export const useRooms = () =>
     const {data} = await axios.get(ROOMS_URL);
     return data; // danh sách tất cả phòng
   });
-
+export const useGetRoomByID = (roomId?: string) => {
+  return useQuery(
+    ['room', roomId],
+    async () => {
+      if (!roomId) throw new Error('Room ID is required');
+      const {data} = await axios.get(`${ROOMS_URL}/${roomId}`);
+      return data; // server trả về object room
+    },
+    {
+      enabled: !!roomId, // chỉ gọi API khi có roomId
+      retry: 1, // (tùy chọn) chỉ retry 1 lần nếu lỗi
+      staleTime: 1000 * 60, // (tùy chọn) cache trong 1 phút
+    },
+  );
+};
 export const useMyRooms = (userId: string) =>
   useQuery(
     ['myRooms', userId],
@@ -191,3 +205,18 @@ export const useRentRoom = () =>
       return data;
     },
   );
+export const useGetManyRooms = (roomIds?: string[]) => {
+  return useQuery(
+    ['rooms', roomIds],
+    async () => {
+      if (!roomIds || roomIds.length === 0) return [];
+      const {data} = await axios.get(
+        `${ROOMS_URL}/many/ids?ids=${roomIds.join(',')}`,
+      );
+      return data;
+    },
+    {
+      enabled: !!roomIds && roomIds.length > 0,
+    },
+  );
+};

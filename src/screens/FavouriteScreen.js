@@ -27,34 +27,29 @@ import {NAVIGATION_NAME} from '../constants/navigtionConstants';
 import {roomsAPI} from '../utill/api/apiRoom';
 import ItemCard from '../component/molecules/ItemCard';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import {
-  useFavouriteData,
-  useToggleFavourite,
-} from '../hooks/useFetchFavouriteData';
+import {useToggleFavourite, useUser} from '../hooks/useGetInforUser';
+import {USER_ID} from '../constants/envConstants';
+import {useGetManyRooms} from '../hooks/useRooms';
+import {TYPE} from '../constants/assetsConstants';
 
-const currentUserId = '1';
 const {width: widthScreen} = Dimensions.get('window');
 const bannerWidth = widthScreen * 0.92;
 const bannerHeight = (widthScreen - 68) / 2.34;
 const FavouriteScreen = () => {
   const route = useRoute();
-  const {item} = route.params;
-  const [selectedRoom, setSelectedRoom] = useState(null);
   const {navigate} = useNavigation();
   const swipeableRefs = useRef({});
 
   const userid = auth().currentUser?.uid;
-  const {data: favouriteRooms, isLoading} = useFavouriteData(currentUserId); // lấy api data room yêu thích từ id user
-  const [isToggleLike, setIsToggleLike] = useState(false);
-  const [isHeart, setIsHeart] = useState('heart-outline');
-  const dispatch = useDispatch();
+  const {data: user} = useUser(USER_ID);
   const toggleFavourite = useToggleFavourite();
-
-  const [dataFavourite, setDataFavourite] = useState(
-    roomsAPI || favouriteRooms,
-  );
+  // const isFavourite = user?.favourite?.includes(roomId);
+  console.log(user?.favourite, 'ssssss');
+  const {data: favouriteRooms, isLoading} = useGetManyRooms(user?.favourite);
   useEffect(() => {}, []);
-
+  const handleUnFavoutire = idRoom => {
+    toggleFavourite.mutate({userId: USER_ID, roomId: idRoom});
+  };
   // Close all open swipeables when needed
   const closeAllSwipeables = useCallback(() => {
     Object.values(swipeableRefs.current).forEach(ref => {
@@ -71,20 +66,20 @@ const FavouriteScreen = () => {
     <GestureHandlerRootView style={styles.gestureContainer}>
       <View style={{flex: 1}}>
         <FlatList
-          data={dataFavourite}
+          data={favouriteRooms}
           keyExtractor={item => item.id.toString()}
           renderItem={({item}) => (
             <ItemCard
-              swipeEnabled={false}
               iconDelete={ICON_TYPE.ICON_HEART_O_DIS}
               item={item}
               swipeableRefs={swipeableRefs}
               onPress={itm =>
                 navigate(NAVIGATION_NAME.ROOM_DETAIL_SCREEN, {
-                  item: itm,
+                  id: itm.id,
+                  type: TYPE.LOOK,
                 })
               }
-              // onDelete={handleDelete}
+              onDelete={() => handleUnFavoutire(item?.id)}
             />
           )}
           contentContainerStyle={styles.flatListContent}
@@ -93,18 +88,8 @@ const FavouriteScreen = () => {
           scrollEventThrottle={16}
           ListEmptyComponent={() => (
             <View style={styles.emptyContainer}>
-              <IconStyles
-                name={searchText.trim() ? ICON_TYPE.SEARCH : ICON_TYPE.HOME}
-                color={COLOR.GRAY2}
-                size={50}
-              />
-              <Space height={16} />
               <TextComponent
-                text={
-                  searchText.trim()
-                    ? 'Không có kết quả tìm kiếm'
-                    : 'Nhập từ khóa để tìm kiếm phòng trọ'
-                }
+                text={!favouriteRooms && 'Bạn chưa có yêu thích phòng nào'}
                 color={COLOR.GRAY4}
                 size={16}
                 textAlign="center"

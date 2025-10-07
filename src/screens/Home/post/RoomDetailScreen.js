@@ -27,13 +27,11 @@ import {NAVIGATION_NAME} from '../../../constants/navigtionConstants';
 import {ROLE, TYPE} from '../../../constants/assetsConstants';
 import {showMessage, hideMessage} from 'react-native-flash-message';
 import {updateRoom} from '../../../redux/slideNew/roomsSlice';
-import {useToggleFavourite} from '../../../hooks/useFetchFavouriteData';
 import {SelectImage} from '../../../utils/SelectImage';
 import Input from '../../../component/atoms/Input';
 import {Controller, useForm} from 'react-hook-form';
-import {USER_ID} from '../../../constants/envConstants';
 import HeaderRoom from '../../../component/organisms/DetailRooms/HeaderRoom';
-import {useUser} from '../../../hooks/useGetInforUser';
+import {useToggleFavourite, useUser} from '../../../hooks/useGetInforUser';
 import {useRooms, useUpdateRoom} from '../../../hooks/useRooms';
 import {toPrice} from '../../../utill/toPrice';
 import ImageRoom from '../../../component/organisms/DetailRooms/ImageRoom';
@@ -44,7 +42,11 @@ import AddressRoom from '../../../component/organisms/DetailRooms/AddressRoom';
 import AmenitiesRoom from '../../../component/organisms/DetailRooms/AmenitiesRoom';
 import DescriptionRoom from '../../../component/organisms/DetailRooms/DescriptionRoom';
 import PriceRoom from '../../../component/organisms/DetailRooms/PriceRoom';
-import {deleteImageFromFirebase, uploadImageToFirebase} from '../../../utill/uploadImageToFirebase';
+import {
+  deleteImageFromFirebase,
+  uploadImageToFirebase,
+} from '../../../utill/uploadImageToFirebase';
+import {USER_ID} from '../../../constants/envConstants';
 
 const {width, height} = Dimensions.get('window');
 const RoomDetailScreen = ({handleToggleLike}) => {
@@ -89,6 +91,9 @@ const RoomDetailScreen = ({handleToggleLike}) => {
     due_date,
     updated_at,
   } = roomDetail?.[0] || {};
+  const {data: user} = useUser(USER_ID);
+  const toggleFavourite = useToggleFavourite();
+  const isFavourite = user?.favourite?.includes(idRoom);
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -98,7 +103,6 @@ const RoomDetailScreen = ({handleToggleLike}) => {
   console.log(roomDetail, 'roomDetail');
 
   const [selectedImage, setSelectedImage] = useState('');
-  const toggleFavourite = useToggleFavourite();
 
   const [isOpenModalLogin, setIsOpenModalLogin] = useState(false);
 
@@ -120,6 +124,13 @@ const RoomDetailScreen = ({handleToggleLike}) => {
   useEffect(() => {
     setValue('avatarRoom', avatar);
   }, [avatar]);
+  useEffect(() => {
+    const isFavourite = () => {
+      const isFavourite = user?.favourite?.includes(idRoom);
+      setIsHeart(isFavourite);
+    };
+    isFavourite();
+  }, [user]);
   const handleSelectImage = async () => {
     try {
       const uri = await SelectImage();
@@ -131,7 +142,7 @@ const RoomDetailScreen = ({handleToggleLike}) => {
     }
   };
   const handleToggle = () => {
-    toggleFavourite.mutate({dataRoom, user_id: USER_ID});
+    toggleFavourite.mutate({userId: USER_ID, roomId: idRoom});
   };
 
   const onSubmit = async formData => {
@@ -201,8 +212,8 @@ const RoomDetailScreen = ({handleToggleLike}) => {
           ) : (
             <TouchableOpacity onPress={handleToggle}>
               <IconStyles
-                name={'heart'}
-                iconSet="AntDesign"
+                name={isHeart ? 'heart' : 'heart-o'}
+                iconSet="FontAwesome"
                 color={COLOR.WHITE}
                 size={24}
               />
