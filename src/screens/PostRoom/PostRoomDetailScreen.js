@@ -1,4 +1,5 @@
 import {
+  Alert,
   Image,
   ScrollView,
   StyleSheet,
@@ -58,13 +59,19 @@ const PostRoomDetailScreen = () => {
         region: selectRoom?.region,
         description: selectRoom?.description,
         images: selectRoom?.images,
+        price: selectRoom?.rent_price,
         is_active: false,
       },
       {
         onSuccess: () => {
-          console.log('thành công ✅✅✅✅✅');
+          Alert.alert('Thành công', 'Bạn đã tạo bài đăng thành công');
+          navigation.navigate(NAVIGATION_NAME.HOME_SCREEN);
         },
         onError: error => {
+          Alert.alert(
+            'Thất bại',
+            'Kết nối mạng không ổn định xin vui lòng thử lại',
+          );
           console.log('thất bại ❌❌❌❌', error.response?.data);
         },
       },
