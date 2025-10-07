@@ -220,3 +220,22 @@ export const useGetManyRooms = (roomIds?: string[]) => {
     },
   );
 };
+export const useUpdateStatusPost = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    async ({roomId, statusPost}: {roomId: string; statusPost: boolean}) => {
+      const {data} = await axios.patch(`${ROOMS_URL}/${roomId}/status-post`, {
+        statusPost,
+      });
+      return data;
+    },
+    {
+      onSuccess: data => {
+        // Cập nhật cache room cụ thể
+        queryClient.invalidateQueries(['room', data.room.id]);
+        queryClient.invalidateQueries(['rooms']); // Nếu có danh sách rooms
+      },
+    },
+  );
+};

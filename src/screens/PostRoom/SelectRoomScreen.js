@@ -22,7 +22,7 @@ const SelectRoomScreen = () => {
   const swipeableRefs = useRef({});
   const {data: dataRooms} = useRooms();
   const dataRoom = dataRooms
-    ? dataRooms.filter(r => r.owner_id === USER_ID)
+    ? dataRooms.filter(r => r.owner_id === USER_ID && r.statusPost === false)
     : [];
   const [isSelect, setIsSelect] = useState(false);
   const [selectRoom, setSelectRoom] = useState(null);

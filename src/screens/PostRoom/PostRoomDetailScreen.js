@@ -23,6 +23,8 @@ import {WIDTH} from '../../constants/distance';
 import PostImages from '../../component/organisms/PostRoom/PostImages';
 import {NAVIGATION_NAME} from '../../constants/navigtionConstants';
 import {useCreatePost} from '../../hooks/usePost';
+import {useUpdateStatusPost} from '../../hooks/useRooms';
+import {toPrice} from '../../utill/toPrice';
 
 const PostRoomDetailScreen = () => {
   const navigation = useNavigation();
@@ -32,7 +34,7 @@ const PostRoomDetailScreen = () => {
   const [postDescription, setPostDescription] = useState(
     selectRoom?.description,
   );
-  const {mutate, isLoading} = useCreatePost();
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
@@ -48,10 +50,18 @@ const PostRoomDetailScreen = () => {
         </View>
       ),
     });
-  }, [navigation]); // Thêm isHeart vào đây
+  }, [navigation, selectRoom, postDescription]); // Thêm isHeart vào đây
+  const createPost = useCreatePost();
+  const updateStatusPostRoom = useUpdateStatusPost();
+
   const onSubmit = async () => {
-    mutate(
-      {
+    if (!selectRoom) {
+      Alert.alert('Thất bại', 'Xin vui lòng chọn phòng để đăng tin');
+      return;
+    }
+    try {
+      // 1️⃣ Gọi API tạo bài đăng
+      const post = await createPost.mutateAsync({
         room_id: selectRoom?.id,
         owner_id: inforUser?.id,
         title: selectRoom?.title,
@@ -61,22 +71,32 @@ const PostRoomDetailScreen = () => {
         images: selectRoom?.images,
         price: selectRoom?.rent_price,
         is_active: false,
-      },
-      {
-        onSuccess: () => {
-          Alert.alert('Thành công', 'Bạn đã tạo bài đăng thành công');
-          navigation.navigate(NAVIGATION_NAME.HOME_SCREEN);
-        },
-        onError: error => {
-          Alert.alert(
-            'Thất bại',
-            'Kết nối mạng không ổn định xin vui lòng thử lại',
-          );
-          console.log('thất bại ❌❌❌❌', error.response?.data);
-        },
-      },
-    );
+      });
+
+      // 2️⃣ Nếu thành công, cập nhật statusPost của phòng
+      await updateStatusPostRoom.mutateAsync({
+        roomId: selectRoom?.id,
+        statusPost: true,
+      });
+
+      // 3️⃣ Tất cả đều thành công
+      Alert.alert(
+        '🎉 Thành công',
+        'Bạn đã tạo bài đăng và cập nhật trạng thái phòng thành công!',
+      );
+      navigation.navigate(NAVIGATION_NAME.HOME_SCREEN);
+    } catch (error) {
+      console.log(
+        '❌ Lỗi khi tạo bài đăng hoặc cập nhật:',
+        error.response?.data || error,
+      );
+      Alert.alert(
+        'Thất bại',
+        'Kết nối mạng không ổn định, xin vui lòng thử lại.',
+      );
+    }
   };
+
   return (
     <View style={styles.container}>
       <RowComponent styles={styles.postContainer}></RowComponent>
@@ -123,6 +143,7 @@ const PostRoomDetailScreen = () => {
             flexDirection="column">
             <Text style={styles.titlePost}>{selectRoom?.title}</Text>
             <Text style={styles.addressPost}>{selectRoom?.address}</Text>
+            <Text style={styles.pricePost}>{toPrice(selectRoom?.price)}</Text>
           </RowComponent>
         </RowComponent>
       </ScrollView>
@@ -165,7 +186,7 @@ const PostRoomDetailScreen = () => {
             style={[
               selectRoom?.title
                 ? {fontWeight: 'bold', color: COLOR.BLACK1}
-                : {fontStyle: 'italic', color: COLOR.SECONDARY},
+                : {fontStyle: 'italic', color: COLOR.GREY_400},
               {fontSize: 18},
             ]}>
             {selectRoom?.title ? selectRoom?.title : 'Chọn phòng của bạn'}
@@ -243,5 +264,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLOR.BLACK2,
     fontStyle: 'italic',
+  },
+  pricePost: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLOR.DANGER,
   },
 });
