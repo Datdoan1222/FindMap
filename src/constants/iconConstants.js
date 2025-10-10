@@ -29,6 +29,18 @@ export const ICON_TYPE = {
   ICON_CLOCK: 'clock', // ICON_SET: 'Feather',
   ICON_ARROW_LEFT: 'arrow-left', //Feather
   ICON_HEART_O_DIS: 'heart-dislike-outline', //Ionicons
+
+  ///
+
+  ANT_DESIGN: 'AntDesign',
+  FONT_AWESOME: 'FontAwesome',
+  FONT_AWESOME5: 'FontAwesome5',
+  FONT_AWESOME6: 'FontAwesome6',
+  FEATHER: 'Feather',
+  ENTYPO: 'Entypo',
+  IONICONS: 'Ionicons',
+  MATERIAL_ICONS: 'MaterialIcons',
+  MATERIAL_COMMUNITY_ICONS: 'MaterialCommunityIcons',
 };
 export const ICON_NAME = {
   PLUS_CIRCLE: 'pluscircle',
@@ -51,4 +63,8 @@ export const ICON_NAME = {
   STAR: 'star',
   STAR_OUTLINE: 'staro',
   PHONE_CALL: 'phone-call', //FontAwesome6
+  KEYBOARD_ARROW_DOWN: 'keyboard-arrow-down', // MaterialIcons
+  KEYBOARD_ARROW_UP: 'keyboard-arrow-up', // MaterialIcons
+  KEYBOARD_ARROW_RIGHT: 'keyboard-arrow-right', // MaterialIcons
+  KEYBOARD_ARROW_LEFT: 'keyboard-arrow-left', // MaterialIcons
 };

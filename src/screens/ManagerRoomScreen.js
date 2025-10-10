@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import Modal from '../component/molecules/Modal';
 import {useNavigation} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -32,12 +32,16 @@ const ManagerRoomScreen = () => {
   const handleSearch = () => {};
   const deleteRoom = useDeleteRoom();
   const [dataUser, setDataUser] = useState(usersAPI[0]);
-  // const [dataRoom, setDataRoom] = useState(roomsAPI);
+  const [isSelect, setIsSelect] = useState(false);
+  const [selectRoom, setSelectRoom] = useState(null);
   const {data: dataRooms} = useRooms();
   const dataRoom = dataRooms
     ? dataRooms.filter(r => r.owner_id === USER_ID)
     : [];
-
+  useEffect(() => {
+    setIsSelect(false);
+    setSelectRoom(null);
+  }, [dataRooms]);
   const swipeableRefs = useRef({});
   const nameUser = dataUser?.name;
   const addressUser = dataUser?.address;
@@ -64,6 +68,28 @@ const ManagerRoomScreen = () => {
   const handleScroll = useCallback(() => {
     closeAllSwipeables();
   }, [closeAllSwipeables]);
+  const handleEditRoom = item => {
+    navigation.navigate(NAVIGATION_NAME.ROOM_DETAIL_SCREEN, {
+      id: item.id,
+      role: ROLE.OWNER,
+      type: TYPE.EDIT,
+    });
+  };
+  const handleForRentRoom = item => {
+    navigation.navigate(NAVIGATION_NAME.ROOM_FORRENT_SCREEN, {
+      item: item,
+    });
+  };
+  const handleInforUserRoom = item => {
+    navigation.navigate(NAVIGATION_NAME.ROOM_FORRENT_SCREEN, {
+      item: item,
+    });
+  };
+  console.log('=================selectRoom?.status===================');
+  console.log(!isSelect || !selectRoom?.status);
+  console.log('selectRoom', !selectRoom?.status);
+  console.log('isSelect', !isSelect);
+  console.log('====================================');
   return (
     <GestureHandlerRootView style={styles.gestureContainer}>
       <SafeAreaView style={styles.container}>
@@ -108,24 +134,26 @@ const ManagerRoomScreen = () => {
           </RowComponent>
           <RowComponent
             flexDirection="column"
-            styles={{width: '100%', height: '94%'}}>
+            styles={{width: '100%', height: '85%'}}>
             <FlatList
               data={dataRoom}
               renderItem={({item}) => (
                 <ItemCard
                   item={item}
                   swipeableRefs={swipeableRefs}
-                  onPress={item =>
-                    navigation.navigate(NAVIGATION_NAME.ROOM_DETAIL_SCREEN, {
-                      id: item.id,
-                      role: ROLE.OWNER,
-                      type: TYPE.EDIT,
-                    })
-                  }
+                  onPress={item => {
+                    setSelectRoom(item);
+                    setIsSelect(true);
+                  }}
                   onDelete={handleDelete}
                   width={width - 40} // Chiều rộng 200px
                   height={120} // Chiều cao 120px
                   imageSize={80} // Ảnh 60x60px
+                  styleDesgin={
+                    selectRoom?.id === item.id
+                      ? {borderColor: COLOR.PRIMARY, borderWidth: 2}
+                      : {}
+                  }
                 />
               )}
               keyExtractor={item => item.id}
@@ -148,6 +176,68 @@ const ManagerRoomScreen = () => {
               })}
             />
           </RowComponent>
+          {isSelect && selectRoom?.status ? (
+            <RowComponent justify="center" styles={{width: '100%', height: 60}}>
+              <TouchableOpacity
+                style={[
+                  styles.button,
+                  !isSelect || !selectRoom?.status
+                    ? {
+                        backgroundColor: COLOR.SECONDARY,
+                        borderColor: COLOR.BLACK1,
+                        borderWidth: 1,
+                      }
+                    : {
+                        backgroundColor: COLOR.WHITE,
+                        borderColor: COLOR.DANGER,
+                        borderWidth: 1,
+                      },
+                ]}
+                disabled={!isSelect || !selectRoom?.status}
+                onPress={() => handleEditRoom(selectRoom)}>
+                <Text
+                  style={[
+                    styles.textButton,
+                    !isSelect || !selectRoom?.status
+                      ? {color: COLOR.BLACK1}
+                      : {color: COLOR.DANGER},
+                  ]}>
+                  Chỉnh sửa
+                </Text>
+              </TouchableOpacity>
+              <Space width={10} />
+              <TouchableOpacity
+                style={[
+                  !isSelect || !selectRoom?.status
+                    ? styles.buttondis
+                    : styles.button,
+                ]}
+                disabled={!isSelect || !selectRoom?.status}
+                onPress={() => handleForRentRoom(selectRoom)}>
+                <Text
+                  style={[
+                    !isSelect || !selectRoom?.status
+                      ? styles.textButtondis
+                      : styles.textButton,
+                  ]}>
+                  Cho thuê
+                </Text>
+              </TouchableOpacity>
+            </RowComponent>
+          ) : isSelect ? (
+            <RowComponent justify="center" styles={{width: '100%', height: 60}}>
+              <TouchableOpacity
+                style={[styles.button, {width: '100%'}]}
+                // disabled={!isSelect || !selectRoom?.status}
+                onPress={() => handleForRentRoom(selectRoom)}>
+                <Text style={[styles.textButton]}>
+                  Xem thông tin người thuê
+                </Text>
+              </TouchableOpacity>
+            </RowComponent>
+          ) : (
+            <Space height={60} />
+          )}
         </RowComponent>
         <Modal
           isVisible={false}
@@ -173,5 +263,31 @@ const styles = StyleSheet.create({
   },
   flatListContent: {
     paddingVertical: 10,
+  },
+  button: {
+    width: '40%',
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 25,
+    backgroundColor: COLOR.PRIMARY,
+  },
+  textButton: {
+    color: COLOR.WHITE,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  buttondis: {
+    width: '40%',
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 25,
+    backgroundColor: COLOR.SECONDARY,
+  },
+  textButtondis: {
+    color: COLOR.BLACK1,
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

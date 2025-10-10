@@ -21,6 +21,7 @@ import ManagerRoomScreen from '../screens/ManagerRoomScreen';
 import RoomDetailScreen from '../screens/Home/post/RoomDetailScreen';
 import AddRoomScreen from '../screens/AddRoomScreen';
 import PostRoomStack from '../screens/PostRoom/PostRoomStack';
+import RoomForRentScreen from '../screens/Home/post/RoomForRentScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -122,6 +123,15 @@ const HomeStacks = () => {
           // headerShown: false,
           headerTitleAlign: 'center',
           title: 'Chi tiết phòng',
+        }}
+      />
+      <Stack.Screen
+        name={NAVIGATION_NAME.ROOM_FORRENT_SCREEN}
+        component={RoomForRentScreen}
+        options={{
+          // headerShown: false,
+          headerTitleAlign: 'center',
+          title: 'Cho thuê phòng',
         }}
       />
       {/* chọn khu vực */}

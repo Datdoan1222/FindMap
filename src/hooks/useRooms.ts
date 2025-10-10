@@ -190,18 +190,34 @@ export const useRentRoom = () =>
     async (params: {
       roomId: string;
       userId: string;
+      nameUser: string;
+      phoneUser?: string;
+      date_of_birth?: string;
       rent_price: number;
-      rent_start_date: string; // ISO string
-      due_date: string; // ISO string
+      rent_start_date?: string; // ISO string
+      rent_end_date?: string; // ISO string (optional)
     }) => {
-      const {roomId, userId, rent_price, rent_start_date, due_date} = params;
-      const {data} = await axios.patch(`${ROOMS_URL}/${roomId}`, {
-        user_id: userId,
-        status: false,
+      const {
+        roomId,
+        userId,
+        nameUser,
+        phoneUser,
+        date_of_birth,
         rent_price,
         rent_start_date,
-        due_date,
+        rent_end_date,
+      } = params;
+
+      const {data} = await axios.post(`${ROOMS_URL}/${roomId}/rent`, {
+        user_id: userId,
+        nameUser,
+        phoneUser,
+        date_of_birth,
+        rent_price,
+        rent_start_date,
+        rent_end_date,
       });
+
       return data;
     },
   );

@@ -19,6 +19,7 @@ export const NAVIGATION_NAME = {
   POST_ROOM_SCREEN: 'PostRoomScreen',
   POST_ROOM_DETAIL_SCREEN: 'PostRoomDetailScreen',
   SELECT_ROOM_SCREEN: 'SelectRoomScreen',
+  ROOM_FORRENT_SCREEN: 'RoomForRentScreen',
 
   ADD_ROOM_SCREEN: 'AddRoomScreen',
   MY_ROOM_SCREEN: 'MyRoomScreen',
