@@ -2,6 +2,7 @@ export const PREFIX = 'VPm5NokrnVUxZcWC3tWKf6ImVSweqe3pPyq47U5S'; // key giaonha
 export const MAP_KEY = 'JNimr0lEEUR4Lp6P8XcJz8RvtizocBOLTDW4SiOJ';
 
 export const GOONG_BASE_URL = 'https://rsapi.goong.io';
+export const GOONG_MAP_API_KEY = `https://tiles.goong.io/assets/goong_map_web.json?api_key=${MAP_KEY}`;
 
 export const GOONG_SERVICE_LIST = {
   Find_Place_from_text: '/place/findplacefromtext?api_key=',

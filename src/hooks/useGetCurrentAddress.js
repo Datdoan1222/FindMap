@@ -2,7 +2,7 @@ import {useState, useCallback} from 'react';
 import {Alert, Linking} from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import userStore from '../store/userStore';
-import {mapService} from '../service/mapService';
+import {goongService} from '../service/goongService';
 import {hasLocationPermission} from '../utill/hasLocationPermission';
 
 const openSetting = () => {
@@ -42,7 +42,7 @@ export const useCurrentAddress = () => {
         };
 
         try {
-          const {data} = await mapService.getGeocoding({
+          const {data} = await goongService.getGeocoding({
             latlng: `${geo.lat}, ${geo.lon}`,
           });
 
@@ -64,7 +64,7 @@ export const useCurrentAddress = () => {
           console.log('currentAddress', currentAddress.display_name);
         } catch (err) {
           console.log('Error fetching street name:', err?.response);
-          setError('Không thể lấy địa chỉ từ mapService');
+          setError('Không thể lấy địa chỉ từ goongService');
         } finally {
           setLoading(false);
         }

@@ -1,7 +1,6 @@
-import React, {useState, useEffect, useRef, useCallback} from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Alert,
-  Dimensions,
   FlatList,
   StyleSheet,
   Text,
@@ -11,82 +10,56 @@ import {
   View,
 } from 'react-native';
 import MapLibreGL from '@maplibre/maplibre-react-native';
-import {useNavigation, useRoute} from '@react-navigation/native';
-import {useDispatch} from 'react-redux';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
 import Geolocation from 'react-native-geolocation-service';
-import {debounce} from 'lodash';
+import { debounce } from 'lodash';
 
 // Components
 import RowComponent from '../../component/atoms/RowComponent';
 import ButtonIcon from '../../component/atoms/ButtonIcon';
-import Modal from '../../component/molecules/Modal';
 
 // Constants
 import IconStyles from '../../constants/IconStyle';
-import {COLOR} from '../../constants/colorConstants';
-import {FONT_SIZE} from '../../constants/fontConstants';
-import {TILE_SERVER_URL} from '../../constants/mapConstants';
+import { COLOR } from '../../constants/colorConstants';
+import { FONT_SIZE } from '../../constants/fontConstants';
+import { GOONG_MAP_API_KEY } from '../../constants/goongConstants';
 
 // Services
-import {goongService_v2} from '../../service/goongService';
-import {mapService} from '../../service/mapService';
+import { goongService, goongService_v2 } from '../../service/goongService';
 
 // Store
 import userStore from '../../store/userStore';
-import {fetchOwners} from '../../redux/ownersSlide';
-import {getProvince} from '../../utill/getProvince';
+import { fetchOwners } from '../../redux/ownersSlide';
+import { getProvince } from '../../utill/getProvince';
 
-// Constants
 MapLibreGL.setAccessToken(null);
-
-const DEFAULT_REGION = {
-  latitude: 21.0285,
-  longitude: 105.8542,
-  latitudeDelta: 0.05,
-  longitudeDelta: 0.05,
-};
 
 const GEOLOCATION_OPTIONS = {
   enableHighAccuracy: true,
-  accuracy: {android: 'high', ios: 'best'},
+  accuracy: { android: 'high', ios: 'best' },
   timeout: 10000,
   maximumAge: 5000,
 };
 
-const {width, height} = Dimensions.get('window');
-
 const MapLibreScreen = () => {
-  const {isSelectAddAddress} = useRoute().params ?? {};
-  console.log(isSelectAddAddress, '✅✅✅✅✅');
-
+  const { isSelectAddAddress } = useRoute().params ?? {};
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const {width, height} = useWindowDimensions();
-  const {currentLocation, setCurrentLocation, addAddress, setAddAddress} =
-    userStore();
+  const { width } = useWindowDimensions();
+  const { currentLocation, setCurrentLocation, setAddAddress } = userStore();
 
   // Refs
-  const mapRef = useRef(null);
   const camera = useRef(null);
-  const isMounted = useRef(true);
 
   // State
   const [searchSuggestions, setSearchSuggestions] = useState([]);
-  const [selectedPost, setSelectedPost] = useState(null);
-  const [openModalMarker, setOpenModalMarker] = useState(false);
   const [locationState, setLocationState] = useState(currentLocation);
   const [inputValue, setInputValue] = useState('');
   const [isCurrentLocationActive, setIsCurrentLocationActive] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(14);
 
   // Effects
-  useEffect(() => {
-    return () => {
-      isMounted.current = false;
-    };
-  }, []);
-
   useEffect(() => {
     dispatch(fetchOwners());
   }, [dispatch]);
@@ -141,7 +114,6 @@ const MapLibreScreen = () => {
         parent: result.compound?.province,
       };
 
-      console.log('Selected location:', selectedLocation);
       setLocationState(selectedLocation);
     } catch (error) {
       console.error('Error selecting search result:', error);
@@ -149,23 +121,17 @@ const MapLibreScreen = () => {
   }, []);
 
   const handleMapPress = useCallback(async event => {
-    setIsLoading(true);
-
     try {
       const [lng, lat] = event.geometry.coordinates;
       const latRounded = parseFloat(lat.toFixed(5));
       const lngRounded = parseFloat(lng.toFixed(5));
 
-      console.log('Map pressed coordinates:', latRounded, lngRounded);
-
-      const {data} = await mapService.getGeocoding({
+      const { data } = await goongService.getGeocoding({
         latlng: `${latRounded}, ${lngRounded}`,
       });
 
       const result = data.results[0];
-      // console.log(JSON.stringify(result, null, 2), 'result');
       const province = getProvince(result.address_components);
-      // console.log(province, '🗺️🗺️🗺️🗺️🗺️🗺️🗺️');
 
       if (result) {
         const pressedLocation = {
@@ -181,8 +147,6 @@ const MapLibreScreen = () => {
       }
     } catch (error) {
       console.error('Error fetching geocoding:', error);
-    } finally {
-      setIsLoading(false);
     }
 
     setSearchSuggestions([]);
@@ -205,7 +169,6 @@ const MapLibreScreen = () => {
 
         const suggestions = response.data.predictions;
         setSearchSuggestions(suggestions);
-        console.log('Search suggestions:', suggestions);
       } catch (error) {
         console.error('Error fetching search suggestions:', error);
         setSearchSuggestions([]);
@@ -222,22 +185,18 @@ const MapLibreScreen = () => {
     [debouncedSearch],
   );
 
-  const handleSaveLocation = useCallback(async () => {
+  const handleSaveLocation = useCallback(() => {
     if (isSelectAddAddress) {
       setAddAddress(locationState);
       navigation.goBack();
     } else {
       setCurrentLocation(locationState);
     }
-  }, [locationState, setCurrentLocation]);
-
-  const handleCloseModal = useCallback(() => {
-    setOpenModalMarker(false);
-  }, []);
+  }, [isSelectAddAddress, locationState, setCurrentLocation, setAddAddress, navigation]);
 
   // Render helpers
   const renderSearchSuggestion = useCallback(
-    ({item}) => (
+    ({ item }) => (
       <TouchableOpacity onPress={() => handleSelectSearchResult(item)}>
         <RowComponent flexDirection="row" alignItems="center">
           <IconStyles
@@ -312,7 +271,7 @@ const MapLibreScreen = () => {
 
       {/* Map */}
       <MapLibreGL.MapView
-        ref={mapRef}
+        mapStyle={GOONG_MAP_API_KEY}
         onPress={handleMapPress}
         projection="globe"
         zoomEnabled={true}
@@ -337,16 +296,6 @@ const MapLibreScreen = () => {
             marker: require('../../assets/images/marker.png'),
           }}
         />
-
-        <MapLibreGL.RasterSource
-          id="customRasterSource"
-          tileUrlTemplates={[TILE_SERVER_URL]}
-          tileSize={256}>
-          <MapLibreGL.RasterLayer
-            id="customRasterLayer"
-            sourceID="customRasterSource"
-          />
-        </MapLibreGL.RasterSource>
 
         <MapLibreGL.ShapeSource
           id="marker-source"
@@ -407,42 +356,6 @@ const styles = StyleSheet.create({
     flex: 1,
     zIndex: -99,
   },
-
-  // Modal styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    width: '85%',
-    padding: 20,
-    backgroundColor: 'white',
-    borderRadius: 10,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  modalDescription: {
-    marginBottom: 5,
-  },
-  modalLocation: {
-    marginBottom: 20,
-  },
-  modalCloseButton: {
-    alignSelf: 'flex-end',
-    padding: 10,
-    backgroundColor: COLOR.PRIMARY,
-    borderRadius: 5,
-  },
-  modalCloseButtonText: {
-    color: 'white',
-  },
-
-  // Location row styles
   locationRow: {
     color: COLOR.WHITE,
     marginHorizontal: 10,
@@ -455,21 +368,19 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.TITLE,
     fontWeight: '400',
   },
-
-  // Search styles
   searchInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLOR.SECONDARY,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 5,
     zIndex: 100,
     paddingHorizontal: 10,
-    height: width * 0.1,
-    width: width,
+    height: 50,
+    width: '100%',
   },
   searchInput: {
     fontSize: FONT_SIZE.TITLE,
@@ -488,7 +399,7 @@ const styles = StyleSheet.create({
     maxHeight: '50%',
     borderRadius: 10,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 5,
@@ -501,8 +412,6 @@ const styles = StyleSheet.create({
     color: COLOR.GREY_900,
     width: '97%',
   },
-
-  // Current location button
   currentLocationButton: {
     position: 'absolute',
     bottom: 20,
@@ -510,7 +419,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 50,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 5,
