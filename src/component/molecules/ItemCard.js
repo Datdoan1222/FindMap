@@ -27,6 +27,9 @@ const ItemCard = ({
   imageSize = 80, // Thêm prop để tùy biến kích thước ảnh
   swipeEnabled = true,
   styleDesgin,
+  isPaymentStatus,
+  isWarningContractStatus,
+  daysLeft,
 }) => {
   // --- Right Actions (Xóa) ---
   const renderRightActions = (progress, dragX) => {
@@ -87,6 +90,54 @@ const ItemCard = ({
     );
   };
 
+  const RenderStatus = ({
+    isPaymentStatus,
+    isWarningContractStatus,
+    daysLeft,
+  }) => {
+    console.log(
+      '==============isPaymentStatusisPaymentStatus======================',
+    );
+    console.log(isPaymentStatus);
+    console.log('====================================');
+    return (
+      <RowComponent>
+        {!item.status &&
+          (isPaymentStatus ? (
+            <View
+              style={[styles.statusBadge, {backgroundColor: COLOR.SUCCESSFUL}]}>
+              <TextComponent
+                text="Đã Thanh toán tiền tháng"
+                size={10}
+                color={COLOR.WHITE}
+                font="Roboto-Medium"
+              />
+            </View>
+          ) : (
+            <View style={[styles.statusBadge, {backgroundColor: COLOR.DANGER}]}>
+              <TextComponent
+                text="Chưa Thanh toán tiền tháng"
+                size={10}
+                color={COLOR.WHITE}
+                font="Roboto-Medium"
+              />
+            </View>
+          ))}
+          <Space width={4} />
+        {!item.status && isWarningContractStatus && (
+          <View style={[styles.statusBadge, {backgroundColor: COLOR.WARN}]}>
+            <TextComponent
+              text={`Còn ${daysLeft} ngày hết hạn`}
+              size={10}
+              color={COLOR.WHITE}
+              font="Roboto-Medium"
+            />
+          </View>
+        )}
+      </RowComponent>
+    );
+  };
+
   // Tạo style động cho container
   const containerStyle = {
     ...styles.itemContainer,
@@ -124,7 +175,7 @@ const ItemCard = ({
         });
       }}>
       <TouchableOpacity
-        style={[containerStyle, styleDesgin ?? {styleDesgin}]}
+        style={[containerStyle, styleDesgin]}
         onPress={() => onPress?.(item)}
         activeOpacity={0.8}>
         <RowComponent styles={styles.itemContent}>
@@ -189,6 +240,12 @@ const ItemCard = ({
                 />
               </View>
             )}
+            <Space height={4} />
+            <RenderStatus
+              isPaymentStatus={isPaymentStatus}
+              isWarningContractStatus={isWarningContractStatus}
+              daysLeft={daysLeft}
+            />
             {/* Render thêm nếu cần */}
           </RowComponent>
           {renderExtra()}

@@ -221,6 +221,27 @@ export const useRentRoom = () =>
       return data;
     },
   );
+
+/** ------------------ CANCEL RENT ROOM ------------------ */
+export const useCancelRent = () => {
+  return useMutation(async roomId => {
+    const {data} = await axios.post(`${ROOMS_URL}/${roomId}/cancel`);
+    return data;
+  });
+};
+export const usePayMonthlyRent = () => {
+  return useMutation(
+    async (params: {roomId: String; user_id: String; amount: number}) => {
+      const {roomId, user_id, amount} = params;
+      const {data} = await axios.post(`${ROOMS_URL}/${roomId}/pay`, {
+        user_id,
+        amount,
+      });
+
+      return data;
+    },
+  );
+};
 export const useGetManyRooms = (roomIds?: string[]) => {
   return useQuery(
     ['rooms', roomIds],
