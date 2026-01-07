@@ -1,15 +1,15 @@
 import React from 'react';
 
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { NavigationContainer } from '@react-navigation/native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {NavigationContainer} from '@react-navigation/native';
 
 //CONSTANTS
 import IconStyles from '../constants/IconStyle';
-import { STYLES_TABBAR } from '../constants/tabBarStyle';
-import { COLOR } from '../constants/colorConstants';
-import { NAVIGATION_NAME } from '../constants/navigtionConstants';
-import { ICON_TYPE } from '../constants/iconConstants';
+import {STYLES_TABBAR} from '../constants/tabBarStyle';
+import {COLOR} from '../constants/colorConstants';
+import {NAVIGATION_NAME} from '../constants/navigtionConstants';
+import {ICON_TYPE} from '../constants/iconConstants';
 
 //SCREEN
 import MessengerScreen from '../screens/Messenger/MessengerScreen';
@@ -22,6 +22,7 @@ import AuthStack from './AuthStack';
 import LoginScreen from '../screens/authentication/LoginScreen';
 import RegisterScreen from '../screens/authentication/RegisterScreen';
 import AccountStack from '../screens/Account/AccountStack';
+import MesengerStack from '../screens/Messenger/MesengerStack';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -29,13 +30,13 @@ const Tab = createBottomTabNavigator();
 const BottomTab = () => {
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused }) => {
+      screenOptions={({route}) => ({
+        tabBarIcon: ({focused}) => {
           let iconName;
           let iconColor = focused ? COLOR.PRIMARY : COLOR.GRAY3;
           if (route.name === NAVIGATION_NAME.MAIN_SCREEN) {
             iconName = ICON_TYPE.ICON_HOME;
-          } else if (route.name === NAVIGATION_NAME.MESSENGER_SCREEN) {
+          } else if (route.name === NAVIGATION_NAME.MESSENGER_STACK) {
             iconName = ICON_TYPE.ICON_MESSENGER;
           } else if (route.name === NAVIGATION_NAME.MAP_SCREEN) {
             iconName = ICON_TYPE.ICON_MAP;
@@ -43,7 +44,14 @@ const BottomTab = () => {
             iconName = ICON_TYPE.ICON_ACCOUNT;
           }
 
-          return <IconStyles name={iconName} color={iconColor} size={25} iconSet='FontAwesome6' />;
+          return (
+            <IconStyles
+              name={iconName}
+              color={iconColor}
+              size={25}
+              iconSet="FontAwesome6"
+            />
+          );
         },
         tabBarActiveTintColor: COLOR.PRIMARY,
         tabBarInactiveTintColor: COLOR.GRAY,
@@ -60,8 +68,8 @@ const BottomTab = () => {
         }}
       />
       <Tab.Screen
-        name={NAVIGATION_NAME.MESSENGER_SCREEN}
-        component={MessengerScreen}
+        name={NAVIGATION_NAME.MESSENGER_STACK}
+        component={MesengerStack}
         options={{
           headerShown: false,
           tabBarLabel: 'Tin nhắn',
@@ -96,16 +104,16 @@ const AppNavigator = () => {
         <Stack.Screen
           name={NAVIGATION_NAME.SPLASH_SCREEN}
           component={SplashScreen}
-          options={{ headerShown: false }}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name={NAVIGATION_NAME.BOTTOM_TAB}
           component={BottomTab}
-          options={{ headerShown: false }}
+          options={{headerShown: false}}
         />
         <Stack.Group
           screenOptions={{
-            headerStyle: { backgroundColor: COLOR.SECONDARY },
+            headerStyle: {backgroundColor: COLOR.SECONDARY},
             headerTintColor: COLOR.GREY_900,
             headerShadowVisible: false,
           }}>

@@ -26,7 +26,7 @@ const HomeScreen = () => {
   const userid = auth().currentUser.uid;
 
   useEffect(() => {
-    console.log('post😁😁😁😁😁😁', posts);
+    // console.log('post😁😁😁😁😁😁', posts);
     dispatch(fetchPosts());
   }, []);
 
@@ -43,7 +43,7 @@ const HomeScreen = () => {
   };
 
   const handleSelectImg = item => {
-    navigation.navigate(NAVIGATION_NAME.POST_DETAIL_SCREEN, {
+    navigation.navigate(NAVIGATION_NAME.ROOM_DETAIL_SCREEN, {
       item,
     });
   };

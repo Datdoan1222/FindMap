@@ -9,12 +9,26 @@ import InforRoomDetailScreen from './InforRoomDetailScreen';
 import InforTransferScreen from './InforTransferScreen';
 import InforCameraScreen from './InforCameraScreen';
 import InforOwnerScreen from './InforOwnerScreen';
+import RoomDetailScreen from '../Home/post/RoomDetailScreen';
+import { COLOR } from '../../constants/colorConstants';
+import { FONT, FONT_SIZE } from '../../constants/fontConstants';
 
 const Stack = createNativeStackNavigator();
 
 const AccountStack = () => {
   return (
-    <Stack.Navigator initialRouteName={NAVIGATION_NAME.ACCOUNT_SCREEN}>
+    <Stack.Navigator
+      initialRouteName={NAVIGATION_NAME.ACCOUNT_SCREEN}
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: COLOR.PRIMARY,
+        },
+        headerTitleStyle: {
+          fontSize: FONT_SIZE.H5,
+          fontFamily: FONT.BOLD,
+        },
+        headerTintColor: COLOR.WHITE,
+      }}>
       <Stack.Screen
         name={NAVIGATION_NAME.ACCOUNT_SCREEN}
         component={AccountScreen}
@@ -28,6 +42,15 @@ const AccountStack = () => {
         options={{
           //   headerShown: false,
           title: 'Phòng trọ của tôi',
+        }}
+      />
+      <Stack.Screen
+        name={NAVIGATION_NAME.ROOM_DETAIL_SCREEN}
+        component={RoomDetailScreen}
+        options={{
+          // headerShown: false,
+          headerTitleAlign: 'center',
+          title: 'Chi tiết phòng',
         }}
       />
       <Stack.Screen

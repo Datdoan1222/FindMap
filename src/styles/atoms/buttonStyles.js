@@ -31,7 +31,7 @@ export const buttonStyles = StyleSheet.create({
     },
     danger: {
       borderWidth: 1,
-      backgroundColor: COLOR.SECONDARY,
+      backgroundColor: COLOR.GRAY1,
       borderColor: COLOR.DANGER,
     },
     disabled: {

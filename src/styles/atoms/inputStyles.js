@@ -15,7 +15,7 @@ export const inputStyles = StyleSheet.create({
     },
     unActive: {
       marginBottom: 5,
-      color: COLOR.GREY,
+      color: COLOR.GREY_300,
       fontWeight: '500',
       fontSize: FONT_SIZE.TITLE,
     },

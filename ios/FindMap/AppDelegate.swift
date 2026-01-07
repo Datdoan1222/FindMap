@@ -8,7 +8,7 @@ import GoogleMaps
 class AppDelegate: RCTAppDelegate {
   override func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
   GMSServices.provideAPIKey('AIzaSyDvkdPMD9eA4DXUOvmMqnGKqrwdhXmWolo')
-    self.moduleName = "FindMap"
+    self.moduleName = "phongtro"
     self.dependencyProvider = RCTAppDependencyProvider()
 
 

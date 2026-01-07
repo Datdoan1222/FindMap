@@ -1,4 +1,4 @@
-import MyRoomScreen from "../screens/MyRoomScreen";
+import MyRoomScreen from '../screens/MyRoomScreen';
 
 export const NAVIGATION_NAME = {
   //authentication
@@ -10,18 +10,24 @@ export const NAVIGATION_NAME = {
   MAIN_SCREEN: 'MainScreen',
   SPLASH_SCREEN: 'SplashScreen',
   HOME_SCREEN: 'HomeScreen',
-  MESSENGER_SCREEN: 'MessengerScreen',
   ACCOUNT_SCREEN: 'AccountScreen',
   MAP_SCREEN: 'MapScreen',
   POST_DETAIL_SCREEN: 'PostDetailScreen',
+  ROOM_DETAIL_SCREEN: 'RoomDetailScreen',
   SEARCH_SCREEN: 'SearchScreen',
+  POST_ROOM_STACK: 'PostRoomStack',
+  POST_ROOM_SCREEN: 'PostRoomScreen',
+  POST_ROOM_DETAIL_SCREEN: 'PostRoomDetailScreen',
+  SELECT_ROOM_SCREEN: 'SelectRoomScreen',
+  ROOM_FORRENT_SCREEN: 'RoomForRentScreen',
 
+  ADD_ROOM_SCREEN: 'AddRoomScreen',
   MY_ROOM_SCREEN: 'MyRoomScreen',
   ROOM_MANAGER_SCREEN: 'RoomManagerScreen',
   SHARE_ROOM_SCREEN: 'ShareRoomScreen',
-  REGISTER_ROOM_SCREEN: 'RegisterRoomScreen',
+  MANAGER_ROOM_SCREEN: 'ManagerRoomScreen',
   FAVOURITE_SCREEN: 'FavouriteScreen',
-
+  CURRENT_ADDRESS_SCREEN: 'CurrentAddressScreen',
   //account stack
   ACCOUNT_STACK: 'AccountStack',
   INFOR_ROOMS_SCREEN: 'InforRoomScreen',
@@ -30,4 +36,12 @@ export const NAVIGATION_NAME = {
   INFOR_CAMERA_SCREEN: 'InforCameraScreen',
   INFOR_USER_SCREEN: 'InforUserScreen',
   INFOR_OWNER_SCREEN: 'InforOwnerScreen',
+  //Messenger stack
+  MESSENGER_STACK: 'MessengerStack',
+  MESSENGER_DETAIL_SCREEN: 'MessengerDetail',
+  MESSENGER_SCREEN: 'MessengerScreen',
+  // shareroom
+  ROOM_SHARING_STACK: 'RoomSharingStack',
+  ROOM_SHARING_SCREEN: 'RoomSharingScreen',
+  POST_ROOM_SHARING_FORM: 'PostRoomSharingForm',
 };

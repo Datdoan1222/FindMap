@@ -2,15 +2,18 @@ import {configureStore} from '@reduxjs/toolkit';
 import ownersReducer from './ownersSlide';
 import postsReducer from './postsSlide';
 import authReducer from './authSlide';
-import usersReducer from './usersSlide'
-
+import usersReducer from './usersSlide';
+import postShareRoomReducer from './postShareRoomSlide';
+import roomsReducer from './slideNew/roomsSlice';
 // Tạo store
 const store = configureStore({
   reducer: {
     ownersData: ownersReducer,
     posts: postsReducer,
     auth: authReducer,
-    users: usersReducer
+    users: usersReducer,
+    postsShareRoomData: postShareRoomReducer,
+    rooms: roomsReducer,
   },
 });
 

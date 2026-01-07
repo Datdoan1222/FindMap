@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  ActivityIndicator,
-  Image,
+  Alert,
+  FlatList,
   StyleSheet,
   Text,
   TextInput,
@@ -10,377 +10,420 @@ import {
   View,
 } from 'react-native';
 import MapLibreGL from '@maplibre/maplibre-react-native';
-import { useNavigation } from '@react-navigation/native';
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchOwners } from '../../redux/ownersSlide';
-import IconStyles from '../../constants/IconStyle';
-import { COLOR } from '../../constants/colorConstants';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
+import Geolocation from 'react-native-geolocation-service';
+import { debounce } from 'lodash';
+
+// Components
 import RowComponent from '../../component/atoms/RowComponent';
 import ButtonIcon from '../../component/atoms/ButtonIcon';
-import { ICON_TYPE } from '../../constants/iconConstants';
-import Carousel from 'react-native-reanimated-carousel';
-import Modal from '../../component/molecules/Modal';
-import HeaderComponent from '../../component/molecules/HeaderComponent';
 
-MapLibreGL.setAccessToken(null); // Không cần token
-const MAP_KEY = "0hyraZS89g2JoCWS27jO4A3oxLxztWJ4ayKnigsv"
-const styleURL = `https://tiles.goong.io/assets/goong_map_web.json?api_key=${MAP_KEY}`;
+// Constants
+import IconStyles from '../../constants/IconStyle';
+import { COLOR } from '../../constants/colorConstants';
+import { FONT_SIZE } from '../../constants/fontConstants';
+import { GOONG_MAP_API_KEY } from '../../constants/goongConstants';
 
-const DEFAULT_REGION = {
-  latitude: 21.0285,
-  longitude: 105.8542,
-  latitudeDelta: 0.05,
-  longitudeDelta: 0.05,
+// Services
+import { goongService, goongService_v2 } from '../../service/goongService';
+
+// Store
+import userStore from '../../store/userStore';
+import { fetchOwners } from '../../redux/ownersSlide';
+import { getProvince } from '../../utill/getProvince';
+
+MapLibreGL.setAccessToken(null);
+
+const GEOLOCATION_OPTIONS = {
+  enableHighAccuracy: true,
+  accuracy: { android: 'high', ios: 'best' },
+  timeout: 10000,
+  maximumAge: 5000,
 };
 
 const MapLibreScreen = () => {
+  const { isSelectAddAddress } = useRoute().params ?? {};
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const { width, height } = useWindowDimensions();
-  const [textSearch, setTextSearch] = useState('');
-
-  const [currentLocation, setCurrentLocation] = useState(null); // Hoặc giá trị khởi tạo phù hợp
-  const [checkAddress, setCheckAddress] = useState(true); // Hoặc giá trị khởi tạo phù hợp
-  const [openModalMarker, setOpenModalMarker] = useState(false); // Hoặc giá trị khởi tạo phù hợp
-
-  // Redux state
-  const ownersData = useSelector(state => state.ownersData.owners);
-  const loading = useSelector(state => state.ownersData.loading);
-  const error = useSelector(state => state.ownersData.error);
-
-  console.log(ownersData)
-  const [isCarouselVisible, setIsCarouselVisible] = useState(false);
-  const [currentRegion, setCurrentRegion] = useState({
-    ...DEFAULT_REGION,
-    longitudeDelta: DEFAULT_REGION.longitudeDelta * (width / height),
-  });
-  const [zoomLevel, setZoomLevel] = useState(12);
+  const { width } = useWindowDimensions();
+  const { currentLocation, setCurrentLocation, setAddAddress } = userStore();
 
   // Refs
-  const mapRef = useRef(null);
   const camera = useRef(null);
-  const isMounted = useRef(true);
 
-  useEffect(() => {
-    return () => {
-      isMounted.current = false; // khi unmount
-    };
-  }, []);
-  const handleRegionChangeComplete = useCallback(
-    region => {
-      setCurrentRegion(region); // Keep track of the current region
-      const calculatedZoom =
-        Math.log2(360 * (width / 256 / region.longitudeDelta)) + 1;
-      setZoomLevel(calculatedZoom);
-      console.log('Region:', region, 'Calculated Zoom:', calculatedZoom);
-    },
-    [width], // Recreate callback if width changes
-  );
+  // State
+  const [searchSuggestions, setSearchSuggestions] = useState([]);
+  const [locationState, setLocationState] = useState(currentLocation);
+  const [inputValue, setInputValue] = useState('');
+  const [isCurrentLocationActive, setIsCurrentLocationActive] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(14);
 
-  // Toggle carousel visibility
-  const toggleCarousel = () => {
-    setIsCarouselVisible(prev => !prev);
-  };
-
-  // Navigate to detail screen
-  const navigateToDetail = item => {
-    // navigation.navigate(NAVIGATION_NAME.DETAIL_SCREEN, {ownerId: item.id});
-    {
-      /* Conditionally render markers based on zoom level */
-    }
-    console.log('item', item);
-  };
-  // Fetch data on mount
+  // Effects
   useEffect(() => {
     dispatch(fetchOwners());
   }, [dispatch]);
 
-  // Render Loading Indicator
-  if (loading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={COLOR.PRIMARY} />
-      </View>
-    );
-  }
+  useEffect(() => {
+    const isSameLocation =
+      currentLocation?.lat === locationState?.lat &&
+      currentLocation?.lon === locationState?.lon;
+    setIsCurrentLocationActive(isSameLocation);
+  }, [locationState, currentLocation]);
 
-  // Render Error Message
-  if (error) {
-    return (
-      <View style={styles.centered}>
-        <Text style={styles.errorText}>Failed to load data: {error}</Text>
-        {/* Optionally add a retry button */}
-      </View>
-    );
-  }
+  // Handlers
+  const handleGetCurrentLocation = useCallback(async () => {
+    Geolocation.getCurrentPosition(
+      async position => {
+        const coordinates = {
+          lat: position.coords.latitude,
+          lon: position.coords.longitude,
+        };
 
-  // console.log('✅✅✅✅✅', ownersData[0].locationOwner.latitude);
+        camera.current?.setCamera({
+          centerCoordinate: [coordinates.lon, coordinates.lat],
+          zoomLevel: 16,
+          animationDuration: 1000,
+        });
+
+        setLocationState(currentLocation);
+      },
+      error => {
+        console.error('Geolocation error:', error);
+        Alert.alert('Không thể lấy vị trí hiện tại', 'Vui lòng thử lại sau.');
+      },
+      GEOLOCATION_OPTIONS,
+    );
+  }, [currentLocation]);
+
+  const handleSelectSearchResult = useCallback(async item => {
+    try {
+      setSearchSuggestions([]);
+      setInputValue('');
+
+      const response = await goongService_v2.getPlaceDetail(item.place_id);
+      const result = response.data.result;
+
+      const selectedLocation = {
+        place_id: item.place_id,
+        display_name: result.formatted_address,
+        lat: result.geometry.location.lat,
+        lon: result.geometry.location.lng,
+        name: result.name,
+        province: result.compound?.commune,
+        parent: result.compound?.province,
+      };
+
+      setLocationState(selectedLocation);
+    } catch (error) {
+      console.error('Error selecting search result:', error);
+    }
+  }, []);
+
+  const handleMapPress = useCallback(async event => {
+    try {
+      const [lng, lat] = event.geometry.coordinates;
+      const latRounded = parseFloat(lat.toFixed(5));
+      const lngRounded = parseFloat(lng.toFixed(5));
+
+      const { data } = await goongService.getGeocoding({
+        latlng: `${latRounded}, ${lngRounded}`,
+      });
+
+      const result = data.results[0];
+      const province = getProvince(result.address_components);
+
+      if (result) {
+        const pressedLocation = {
+          place_id: result.place_id,
+          display_name: result.formatted_address,
+          name: result.name,
+          lat: result.geometry.location?.lat,
+          lon: result.geometry.location?.lng,
+          province: province,
+        };
+
+        setLocationState(pressedLocation);
+      }
+    } catch (error) {
+      console.error('Error fetching geocoding:', error);
+    }
+
+    setSearchSuggestions([]);
+    setInputValue('');
+  }, []);
+
+  const debouncedSearch = useCallback(
+    debounce(async text => {
+      if (!text || text.length < 3) {
+        setSearchSuggestions([]);
+        return;
+      }
+
+      try {
+        const response = await goongService_v2.getPlacesAutocomplete({
+          text,
+          lat: currentLocation.lat,
+          lng: currentLocation.lon,
+        });
+
+        const suggestions = response.data.predictions;
+        setSearchSuggestions(suggestions);
+      } catch (error) {
+        console.error('Error fetching search suggestions:', error);
+        setSearchSuggestions([]);
+      }
+    }, 800),
+    [currentLocation],
+  );
+
+  const handleSearchInputChange = useCallback(
+    text => {
+      setInputValue(text);
+      debouncedSearch(text);
+    },
+    [debouncedSearch],
+  );
+
+  const handleSaveLocation = useCallback(() => {
+    if (isSelectAddAddress) {
+      setAddAddress(locationState);
+      navigation.goBack();
+    } else {
+      setCurrentLocation(locationState);
+    }
+  }, [isSelectAddAddress, locationState, setCurrentLocation, setAddAddress, navigation]);
+
+  // Render helpers
+  const renderSearchSuggestion = useCallback(
+    ({ item }) => (
+      <TouchableOpacity onPress={() => handleSelectSearchResult(item)}>
+        <RowComponent flexDirection="row" alignItems="center">
+          <IconStyles
+            iconSet="FontAwesome6"
+            name="location-crosshairs"
+            size={22}
+            color={COLOR.PRIMARY}
+          />
+          <Text style={styles.searchSuggestionText}>{item.description}</Text>
+        </RowComponent>
+      </TouchableOpacity>
+    ),
+    [handleSelectSearchResult],
+  );
+
+  const getMapCoordinates = () => {
+    return [
+      locationState?.lon || 106.3583744,
+      locationState?.lat || 11.2787456,
+    ];
+  };
+
+  const getDisplayAddress = () => {
+    return locationState?.display_name_v2 || locationState?.display_name || '';
+  };
+
   return (
-    <View style={styles.page}>
-      <View style={styles.containerSreach}>
+    <View style={styles.container}>
+      {/* Current Location Display */}
+      <TouchableOpacity onPress={handleSaveLocation}>
+        <RowComponent
+          flexDirection="row"
+          alignItems="center"
+          justify="space-between"
+          styles={styles.locationRow}>
+          <ButtonIcon
+            iconSet="MaterialCommunityIcons"
+            name="map-marker"
+            size={20}
+            color={COLOR.PRIMARY}
+            disabled
+          />
+          <Text style={styles.addressText}>{getDisplayAddress()}</Text>
+          <IconStyles name="save" color={COLOR.PRIMARY} size={22} />
+        </RowComponent>
+      </TouchableOpacity>
+
+      {/* Search Input */}
+      <View style={styles.searchInputContainer}>
+        <IconStyles name="search" size={20} />
         <TextInput
-          style={styles.inputSearch}
-          placeholder="Tìm kiếm phòng trọ nào"
-          value={textSearch}
-          onChangeText={setTextSearch}
+          allowFontScaling={false}
+          style={styles.searchInput}
+          placeholder="Vui lòng nhập vị trí"
+          placeholderTextColor={COLOR.GREY_400}
+          value={inputValue}
+          onChangeText={handleSearchInputChange}
         />
-        <ButtonIcon name={'search'} color={COLOR.WHITE} size={30} />
       </View>
+
+      {/* Search Suggestions */}
+      {searchSuggestions.length > 0 && (
+        <View style={styles.searchSuggestionsContainer}>
+          <FlatList
+            data={searchSuggestions}
+            renderItem={renderSearchSuggestion}
+            keyExtractor={item => item.place_id}
+            showsVerticalScrollIndicator={false}
+          />
+        </View>
+      )}
+
+      {/* Map */}
       <MapLibreGL.MapView
+        mapStyle={GOONG_MAP_API_KEY}
+        onPress={handleMapPress}
         projection="globe"
         zoomEnabled={true}
-        style={styles.map}
-        mapStyle={`https://tiles.goong.io/assets/goong_map_web.json?api_key=${MAP_KEY}`}
-      >
+        style={styles.map}>
         <MapLibreGL.Camera
           ref={camera}
           zoomLevel={zoomLevel}
-          centerCoordinate={[106.842786, 10.956216]}
+          maxZoomLevel={18}
+          minZoomLevel={4}
+          centerCoordinate={getMapCoordinates()}
         />
+
         <MapLibreGL.PointAnnotation
-          id="marker1"
-          coordinate={[106.842786, 10.956216]}>
-          <IconStyles
-            iconSet="MaterialIcons"
-            name="my-location"
-            color={COLOR.PRIMARY}
-            size={25}
-          />
-        </MapLibreGL.PointAnnotation>
-        {ownersData?.map(owner => (
-          <MapLibreGL.PointAnnotation
-            key={owner.id.toString()}
-            id={owner.id.toString()}
-            coordinate={[
-              owner?.locationOwner?.longitude
-                ? owner?.locationOwner?.longitude
-                : 0,
-              owner?.locationOwner?.latitude
-                ? owner?.locationOwner?.latitude
-                : 0,
-            ]}
-            onSelected={() => {
-              console.log('Marker được click:', owner.id);
-              // Bạn có thể mở modal, callout, hoặc điều hướng sang màn hình chi tiết...
+          id="currentLocation"
+          key="current-location"
+          draggable={true}
+          coordinate={getMapCoordinates()}
+        />
 
-              if (isMounted.current && camera.current) {
-                camera.current?.setCamera({
-                  centerCoordinate: [
-                    owner.locationOwner.longitude,
-                    owner.locationOwner.latitude + 0.004,
-                  ],
-                  zoomLevel: 15, // zoom gần hơn
-                  animationDuration: 1000, // thời gian di chuyển
-                });
-              }
-              setOpenModalMarker(true);
-            }}>
-            <IconStyles
-              iconSet="MaterialIcons"
-              name="location-on"
-              color={COLOR.PRIMARY}
-              size={25}
-            />
-          </MapLibreGL.PointAnnotation>
-        ))}
-      </MapLibreGL.MapView>
-      <View style={styles.bottomContainer}>
-        {/* Toggle Button */}
-        <RowComponent styles={styles.toggleButtonContainer}>
-          <ButtonIcon
-            iconSet="MaterialIcons"
-            name={
-              isCarouselVisible
-                ? ICON_TYPE.MUI_TEM_XUONG
-                : ICON_TYPE.MUI_TEN_LEN
-            }
-            size={30}
-            color={COLOR.PRIMARY}
-            onPress={toggleCarousel}
-          />
-        </RowComponent>
+        <MapLibreGL.Images
+          images={{
+            marker: require('../../assets/images/marker.png'),
+          }}
+        />
 
-        {/* Carousel */}
-        {isCarouselVisible && ownersData && ownersData.length > 0 && (
-          <Carousel
-            // Use ownersData instead of static DATA
-            data={ownersData}
-            loop={false}
-            width={width}
-            height={width / 2.5}
-            autoPlay={false}
-            mode="parallax"
-            modeConfig={{
-              parallaxScrollingScale: 0.9,
-              parallaxScrollingOffset: 50,
+        <MapLibreGL.ShapeSource
+          id="marker-source"
+          shape={{
+            type: 'FeatureCollection',
+            features: [
+              {
+                type: 'Feature',
+                geometry: {
+                  type: 'Point',
+                  coordinates: getMapCoordinates(),
+                },
+                properties: {
+                  icon: 'marker',
+                },
+              },
+            ],
+          }}>
+          <MapLibreGL.SymbolLayer
+            id="marker-layer"
+            style={{
+              iconImage: 'marker',
+              iconSize: 1,
             }}
-            scrollAnimationDuration={800}
-            // Use item.id or index as key
-            keyExtractor={item => item.id.toString()}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.carouselItemContainer}
-                onPress={() => navigateToDetail(item)} // Navigate on item press
-                activeOpacity={0.8} // Feedback on touch
-              >
-                <View style={styles.carouselItemContent}>
-                  {/* Example Content: Image */}
-                  {item.imageOwner ? (
-                    <Image
-                      source={{ uri: item.imageOwner }}
-                      style={styles.itemImage}
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <View style={[styles.itemImage, styles.placeholderImage]}>
-                      <IconStyles
-                        name="image-off"
-                        iconSet="MaterialCommunityIcons"
-                        size={40}
-                        color={COLOR.GRAY3}
-                      />
-                    </View>
-                  )}
-                  {/* Example Content: Text */}
-                  <View style={styles.itemTextContainer}>
-                    <Text style={styles.itemTitle} numberOfLines={1}>
-                      {item.nameOwner || 'Unnamed Location'}
-                    </Text>
-                    <Text style={styles.itemSubtitle} numberOfLines={1}>
-                      {item.address || 'No address'}
-                    </Text>
-                    {/* Add more details like distance, rating, etc. */}
-                  </View>
-                </View>
-              </TouchableOpacity>
-            )}
           />
-        )}
-        {/* Show message if carousel is visible but no data */}
-        {isCarouselVisible && (!ownersData || ownersData.length === 0) && (
-          <View style={styles.noDataContainer}>
-            <Text style={styles.noDataText}>No locations found.</Text>
-          </View>
-        )}
-      </View>
+        </MapLibreGL.ShapeSource>
+      </MapLibreGL.MapView>
+
+      {/* Current Location Button */}
+      <TouchableOpacity
+        style={[
+          styles.currentLocationButton,
+          {
+            backgroundColor: isCurrentLocationActive
+              ? COLOR.GREY_400
+              : COLOR.GREY_200,
+          },
+        ]}
+        disabled={isCurrentLocationActive}
+        onPress={handleGetCurrentLocation}>
+        <IconStyles
+          iconSet="FontAwesome6"
+          name="location-crosshairs"
+          size={28}
+          color={COLOR.PRIMARY}
+        />
+      </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  page: { flex: 1 },
-  map: { flex: 1 },
-  centered: {
+  container: {
     flex: 1,
-    justifyContent: 'center',
+    paddingTop: 60,
+  },
+  map: {
+    flex: 1,
+    zIndex: -99,
+  },
+  locationRow: {
+    color: COLOR.WHITE,
+    marginHorizontal: 10,
+    paddingVertical: 10,
+  },
+  addressText: {
+    flex: 1,
+    marginHorizontal: 10,
+    color: COLOR.GREY_900,
+    fontSize: FONT_SIZE.TITLE,
+    fontWeight: '400',
+  },
+  searchInputContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLOR.BACKGROUND,
-  },
-  errorText: {
-    color: COLOR.ERROR,
-    fontSize: 16,
-    textAlign: 'center',
-    paddingHorizontal: 20,
-  },
-  bottomContainer: {
-    position: 'absolute',
-    bottom: 0, // Adjust bottom spacing as needed (e.g., for safe areas)
-    left: 0,
-    right: 0,
-    alignItems: 'center', // Center toggle button horizontally
-  },
-  toggleButtonContainer: {
-    // Add some style to the button container if needed
-    marginBottom: 5, // Space between button and carousel
-    backgroundColor: COLOR.WHITE,
-    borderRadius: 30, // Make it circular
-    padding: 5,
-    elevation: 4, // Add shadow
+    backgroundColor: COLOR.SECONDARY,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-  },
-  // Carousel Styles
-  carouselItemContainer: {
-    backgroundColor: COLOR.WHITE,
-    borderRadius: 15,
-    height: '95%', // Use percentage or calculated height
-    // width: width - 40, // Adjust width for padding/margin effect
-    marginLeft: 20, // Center the item by adjusting margins
-    marginRight: 20,
-    overflow: 'hidden', // Clip content like image corners
-    elevation: 5, // Android shadow
-    shadowColor: '#000', // iOS shadow
-    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
-    marginBottom: 10, // Space at the bottom
-  },
-  carouselItemContent: {
-    flex: 1, // Allow content to fill container
-    // flexDirection: 'row', // Arrange image and text side-by-side if desired
-  },
-  itemImage: {
-    height: '65%', // Allocate space for the image
-    width: '100%',
-    backgroundColor: COLOR.GRAY1, // Placeholder background
-  },
-  placeholderImage: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  itemTextContainer: {
-    flex: 1, // Take remaining space
-    padding: 10,
-    justifyContent: 'center', // Center text vertically
-  },
-  itemTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: COLOR.TEXT,
-    marginBottom: 4,
-  },
-  itemSubtitle: {
-    fontSize: 14,
-    color: COLOR.GRAY4,
-  },
-  noDataContainer: {
-    height: 100, // Give it some height
-    justifyContent: 'center',
-    alignItems: 'center',
+    elevation: 5,
+    zIndex: 100,
+    paddingHorizontal: 10,
+    height: 50,
     width: '100%',
   },
-  noDataText: {
-    color: COLOR.GRAY4,
-    fontSize: 16,
+  searchInput: {
+    fontSize: FONT_SIZE.TITLE,
+    color: COLOR.GREY_900,
+    height: '100%',
+    flex: 1,
+    marginLeft: 10,
   },
-  // Optional Callout Styles
-  calloutView: {
-    padding: 10,
-    minWidth: 150, // Ensure callout has some width
-  },
-  calloutTitle: {
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  containerSreach: {
-    backgroundColor: COLOR.PRIMARY,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 10,
-    width: "100%"
-  },
-  inputSearch: {
-    borderWidth: 1,
-    borderColor: COLOR.GRAY1,
-    borderRadius: 15,
-    padding: 10,
-    margin: 10,
+  searchSuggestionsContainer: {
+    position: 'absolute',
+    top: 170,
+    zIndex: 99,
     backgroundColor: COLOR.WHITE,
-    width: "85%"
-  }
+    paddingHorizontal: 10,
+    width: '100%',
+    maxHeight: '50%',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  searchSuggestionText: {
+    padding: 15,
+    fontSize: FONT_SIZE.TITLE,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#ccc',
+    color: COLOR.GREY_900,
+    width: '97%',
+  },
+  currentLocationButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    padding: 12,
+    borderRadius: 50,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
 });
 
 export default MapLibreScreen;
